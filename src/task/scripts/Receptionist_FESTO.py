@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#from smach_utils_receptionist import *
+from smach_utils_receptionist import *
 # Initial STATE: task setup (grammar, knowledge, robot position, ...)
 
 class Initial(smach.State):

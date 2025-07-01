@@ -7,7 +7,6 @@ from std_srvs.srv import Trigger, TriggerResponse
 import tf2_ros
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 from object_classification.srv import *
-from segmentation.srv import *
 from human_detector.srv import Human_detector ,Human_detectorResponse 
 from ros_whisper_vosk.srv import GetSpeech
 from face_recog.msg import *
@@ -29,7 +28,6 @@ from cv_bridge import CvBridge, CvBridgeError
 from nav_msgs.msg import OccupancyGrid
 from hri_msgs.msg import RecognizedSpeech
 from rospy.exceptions import ROSException
-from vision_msgs.srv import *
 from std_msgs.msg import String, Bool
 import random
 import rospkg
@@ -58,7 +56,7 @@ recognize_face = rospy.ServiceProxy('recognize_face', RecognizeFace)            
 train_new_face = rospy.ServiceProxy('new_face', RecognizeFace)                          #FACE RECOG
 analyze_face = rospy.ServiceProxy('analyze_face', RecognizeFace)    ###DEEP FACE ONLY
 classify_client_dino = rospy.ServiceProxy('grounding_dino_detect', Classify_dino_receptionist) #beverage recognition
-segment_service = rospy.ServiceProxy("segment_region", SegmentRegion) # Beverage area segmentation
+
 
 
 enable_mic_pub = rospy.Publisher('/talk_now', Bool, queue_size=10)
@@ -73,8 +71,8 @@ wrist= grasp_utils.WRIST_SENSOR()
 head = grasp_utils.GAZE()
 brazo = grasp_utils.ARM()
 line_detector = misc_utils.LineDetector()
-voice = misc_utils.TALKER()
-party = receptionist_knowledge.RECEPTIONIST()
+#voice = misc_utils.TALKER()
+#party = receptionist_knowledge.RECEPTIONIST()
 
 # Functions
 def places_2_tf():

@@ -239,7 +239,6 @@ class PumasNavServer():
             success = euclD < 0.45 and abs(anglD) < 0.1
 
         # state = NS.get_status()
-        head.set_joint_values(head_pose = [0.0, 0.0])
         rospy.sleep(0.8)
         pub_stop.publish()
         if not success:
