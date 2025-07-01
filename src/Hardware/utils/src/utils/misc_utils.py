@@ -205,10 +205,9 @@ class TF_MANAGER:
 
 
 class LineDetector:
-    def __init__(self, laser_scan_topic = "/hsrb/base_scan"):
+    def __init__(self, laser_scan_topic = "/scan"):
         self.scan_sub = rospy.Subscriber(laser_scan_topic,
                                           LaserScan, self._scan_callback)
-        # self.scan_sub = rospy.Subscriber("/hsrb/base_scan/fix", LaserScan, self._scan_callback)
         self._result = False
 
     def _scan_callback(self, scan_msg):

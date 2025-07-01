@@ -646,7 +646,7 @@ if __name__ == '__main__':
 
         # Initial states routine
         smach.StateMachine.add("INITIAL", Initial(),              
-                               transitions={'failed': 'INITIAL', 'succ': 'WAIT_PUSH_HAND'})
+                               transitions={'failed': 'INITIAL', 'succ': 'GOTO_DOOR'})
                                # 'succ': 'WAIT_PUSH_HAND'})
         smach.StateMachine.add("WAIT_PUSH_HAND", Wait_push_hand(),       
                                transitions={'failed': 'WAIT_PUSH_HAND'   #, 'succ':'FIND_SITTING_PLACE'

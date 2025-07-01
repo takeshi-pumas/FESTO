@@ -14,6 +14,7 @@ from face_recog.srv import *
 #import face_recognition 
 import cv2  
 import rospy 
+import ros_numpy
 import numpy as np
 import math
 import actionlib
@@ -62,7 +63,24 @@ classify_client_dino = rospy.ServiceProxy('grounding_dino_detect', Classify_dino
 enable_mic_pub = rospy.Publisher('/talk_now', Bool, queue_size=10)
 
 # Utils
-rgbd= misc_utils.RGBD()
+#rgbd= misc_utils.RGBD()  ## WARNING USE UTILS FOR REAL THIS IS OFR DEBUGING
+class RGBD:
+    def __init__(self, camera_topic = "/usb_cam/image_raw"):   ## USB CAM! DONT USE REAL ROBOT !!! BE SURE POINTS ARE BEEIN REEAD IN UTILS
+        self.cam_sub = rospy.Subscriber(camera_topic,
+            Image, self._callback)
+        self._points_data = None
+        self._image_data = None
+
+    def _callback(self, msg):
+        self._image_data = ros_numpy.numpify(msg)
+
+    def get_image(self):
+        image = self._image_data
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        return image
+#############################################3
+
 bridge = CvBridge()
 tf_man = misc_utils.TF_MANAGER()
 gripper = grasp_utils.GRIPPER()
@@ -71,7 +89,9 @@ wrist= grasp_utils.WRIST_SENSOR()
 head = grasp_utils.GAZE()
 brazo = grasp_utils.ARM()
 line_detector = misc_utils.LineDetector()
-#voice = misc_utils.TALKER()
+
+rgbd=RGBD()
+voice = misc_utils.TALKER()
 #party = receptionist_knowledge.RECEPTIONIST()
 
 # Functions
