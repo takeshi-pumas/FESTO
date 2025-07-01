@@ -1,0 +1,48 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="0.0"/>
+  <arg name="z" default="0.1"/>
+  <arg name="yaw" default="0.0"/>
+  <arg name="use_sim_time" default="true"/>
+
+  <!-- Use simulated time -->
+  <param name="/use_sim_time" value="$(arg use_sim_time)" />
+
+  <!-- Load robot_description from xacro -->
+  <param name="robot_description"
+         command="$(find xacro)/xacro '$(find robotino_description)/urdf/robotino.urdf.xacro'" />
+
+  <!-- Load xArm gazebo control config (to satisfy gazebo_ros_control plugin) -->
+  <rosparam command="load" file="$(find xarm_description)/config/xarm6_ros_control.yaml" />
+  <rosparam command="load" file="$(find xarm_description)/config/pid_gains.yaml" ns="xarm" />
+  
+
+  <!-- Load xArm controllers -->
+  <rosparam file="$(find xarm_controller)/config/xarm6/xarm6_controllers.yaml" command="load"/>
+
+  <!-- Joint state publisher -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+
+  <!-- Robot state publisher -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+    <param name="use_sim_time" value="$(arg use_sim_time)" />
+  </node>
+
+  <!-- Spawn robot in Gazebo -->
+  <node name="spawn_festino" pkg="gazebo_ros" type="spawn_model"
+        args="-param robot_description -urdf -model festino -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg yaw)"
+        output="screen" />
+
+
+
+
+
+  <!-- Controller spawner -->
+  
+  <node name="controller_spawner" pkg="controller_manager" type="spawner"
+        args="joint_state_controller xarm6_traj_controller"
+        output="screen" /> 
+  
+
+</launch>

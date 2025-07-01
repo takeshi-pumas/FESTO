@@ -1,0 +1,223 @@
+<?xml version="1.0"?>
+<!-- ==================================================================== -->
+<!-- ==================== ROBOTINO 4 - FestXarmKeshi ==================== -->
+<!-- ==================== PUMAS - Biorobotics Lab    ==================== -->
+<!-- ==================================================================== -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robotino">
+  
+  <!-- ==================== Includes ==================== -->
+  <!-- Removed arm-related includes -->
+  <!--<xacro:include filename="$(find xarm_description)/urdf/xarm6/xarm6.urdf.xacro"/>
+  <xacro:include filename="$(find xarm_description)/urdf/xarm_device_macro.xacro" />-->
+
+  <!-- ==================== Properties ==================== -->
+  <xacro:property name="mesh_scale" value="0.01 0.01 0.01"/>
+  <xacro:property name="wheel_mesh" value="package://robotino_description/model/Robotino3_SplitWheel.dae"/>
+  <xacro:property name="body_mesh" value="package://robotino_description/model/Robotino3_SplitMain_NoCamera.dae"/>
+  <xacro:property name="tower_mesh" value="package://robotino_description/model/Robotino3_Platform-xarm.dae"/>
+  <xacro:property name="hokuyo_mesh" value="package://robotino_description/meshes/sensors/hokuyo.dae"/>
+  <xacro:property name="kinect_mesh" value="package://robotino_description/meshes/sensors/kinect.dae"/>
+
+  <!-- ==================== Macros ==================== -->
+  <xacro:macro name="wheel_link" params="index xyz rpy">
+    <link name="wheel${index}_link">
+      <inertial>
+        <mass value="1.0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${wheel_mesh}" scale="${mesh_scale}"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${wheel_mesh}" scale="${mesh_scale}"/>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="wheel${index}_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="wheel${index}_link"/>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+  </xacro:macro>
+
+  <!-- ==================== Base ==================== -->
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0 0 0.03" rpy="0 0 0"/>
+      <mass value="35.0"/>
+      <inertia ixx="1.0" iyy="1.0" izz="1.0" ixy="0.0" ixz="0.0" iyz="0.0"/>
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0.035" rpy="0 0 1.5707"/>
+      <geometry>
+        <mesh filename="${body_mesh}" scale="${mesh_scale}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0.035" rpy="0 0 1.5707"/>
+      <geometry>
+        <mesh filename="${body_mesh}" scale="${mesh_scale}"/>
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="0 0 0.03" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.4 0.4 0.06"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- ==================== Wheels ==================== -->
+  <xacro:wheel_link index="0" xyz="-0.1825 -0.0001 0.059154" rpy="0 0 1.570796"/>
+  <xacro:wheel_link index="1" xyz="0.090625 -0.157067 0.059154" rpy="0 0 3.665191"/>
+  <xacro:wheel_link index="2" xyz="0.090625 0.156867 0.059154" rpy="0 0 -0.523599"/>
+
+  <!-- ==================== Tower (Platform) ==================== -->
+  <link name="platform_link">
+    <visual>
+      <origin xyz="0 0 -0.70" rpy="0 0 1.5707"/>
+      <geometry>
+        <mesh filename="${tower_mesh}" scale="0.009 0.009 0.009"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.70" rpy="0 0 1.5707"/>
+      <geometry>
+        <mesh filename="${tower_mesh}" scale="0.009 0.009 0.009"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="platform_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="platform_link"/>
+    <origin xyz="0 0 0.455" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== Laser Sensor ==================== -->
+  <link name="laser_link">
+    <visual>
+      <origin xyz="0 0 -0.055" rpy="0 0 1.57"/>
+      <geometry>
+        <mesh filename="${hokuyo_mesh}" scale="${mesh_scale}"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.055" rpy="0 0 1.57"/>
+      <geometry>
+        <mesh filename="${hokuyo_mesh}" scale="${mesh_scale}"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="base_to_laser" type="fixed">
+    <parent link="base_link"/>
+    <child link="laser_link"/>
+    <origin xyz="0.07 0.0 0.28" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== Kinect Sensor ==================== -->
+  <link name="camera_link">
+    <visual>
+      <origin xyz="0.15 0 0" rpy="0 0 1.57"/>
+      <geometry>
+        <mesh filename="${kinect_mesh}" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.15 0 0" rpy="0 0 1.57"/>
+      <geometry>
+        <mesh filename="${kinect_mesh}" scale="1 1 1"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="platform_to_camera" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="0.15 0.0 0.3" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== Gazebo Plugins ==================== -->
+  <gazebo>
+    <plugin name="pumas_base_controller" filename="libgazebo_ros_planar_move.so">
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom</odometryTopic>
+      <odometryFrame>odom</odometryFrame>
+      <odometryRate>50</odometryRate>
+      <robotBaseFrame>base_link</robotBaseFrame>
+    </plugin>
+  </gazebo>
+
+  <gazebo reference="laser_link">
+    <sensor type="ray" name="hokuyo_laser">
+      <plugin name="gazebo_ros_laser" filename="libgazebo_ros_laser.so">
+        <gazebo_ros>
+          <namespace>/</namespace>  <!-- Forces root namespace -->
+          <remapping>~/out:=scan</remapping>
+        </gazebo_ros>
+        
+        <topicName>/scan</topicName>
+        <frameName>laser_link</frameName>
+        <radiationType>infrared</radiationType>
+        <alwaysOn>true</alwaysOn>
+      </plugin>
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>true</visualize>
+      <update_rate>40</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>720</samples>
+            <resolution>1</resolution>
+            <min_angle>-1.5708</min_angle>
+            <max_angle>1.5708</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.10</min>
+          <max>30.0</max>
+          <resolution>0.01</resolution>
+        </range>
+      </ray>
+    </sensor>
+  </gazebo>
+
+  <gazebo reference="camera_link">
+    <sensor type="depth" name="kinect_sensor">
+      <always_on>true</always_on>
+      <update_rate>30</update_rate>
+      <visualize>true</visualize>
+      
+      <camera>
+        <horizontal_fov>1.0472</horizontal_fov>  <!-- 60° FOV -->
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <depth_near>0.1</depth_near>
+        <depth_far>10.0</depth_far>
+      </camera>
+
+      <plugin name="kinect_controller" filename="libgazebo_ros_openni_kinect.so">
+        <topicName>/kinect/depth</topicName>
+        <frameName>camera_link</frameName>
+        <baseline>0.1</baseline>
+        <alwaysOn>true</alwaysOn>
+        <updateRate>30</updateRate>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+</robot>
