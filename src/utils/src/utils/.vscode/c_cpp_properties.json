@@ -1,0 +1,28 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/takeshi/PumasLogistics/PC_user/devel/include/**",
+        "/home/takeshi/PumasLogistics/Robotino/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/takeshi/PumasLogistics/PC_user/src/Hardware/freenect_stack/freenect_camera/include/**",
+        "/home/takeshi/PumasLogistics/Robotino/src/robotino/robotino_node/include/**",
+        "/opt/ros/noetic/share/tmc_julius/include/**",
+        "/home/takeshi/PumasLogistics/PC_user/src/Hardware/xarm/xarm_api/include/**",
+        "/home/takeshi/PumasLogistics/PC_user/src/Hardware/xarm/xarm_controller/include/**",
+        "/home/takeshi/PumasLogistics/PC_user/src/Hardware/xarm/xarm_moveit_servo/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
