@@ -62,8 +62,8 @@ class Wait_push_hand(smach.State):
         print(f'Try {self.tries} of 4 attempts')
         # if self.tries == 4:
         #     return 'failed'
-        head.set_named_target('neutral')
-        brazo.set_named_target('go')
+        arm.set_named_target('navigation')
+
         voice.talk('Gently... push my hand to begin')
         succ = wait_for_push_hand(100)
 
@@ -141,7 +141,7 @@ class Scan_face(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('State : Scan face')
-        head.set_joint_values([0.0, 0.3])
+        arm.set_named_target('face')
         voice.talk('Waiting for guest, look at me, please')
 
         res, userdata.face_img = wait_for_face()  # default 10 secs
@@ -406,7 +406,7 @@ class Find_drink(smach.State):
         # arm.go(av)
         # brazo.set_joint_values([0.160 , 0.0, -1.57,-1.57, 0.0])
         # head.set_joint_values([0.0, -0.5])
-        head.set_joint_values([0.0, -0.22])
+        arm.set_named_target('table')
         rospy.sleep(3)
 
         res,position = get_favorite_drink_location(favorite_drink)
@@ -474,7 +474,7 @@ class Find_sitting_place(smach.State):
 
         place='seat_place_'+str(self.tries)
         print (place)
-        head.to_tf(place)
+        head.turn_base_gaze2(tf = place, to_gaze = 'base_link')
         #voice.talk('I will check if this place is empty')
         rospy.sleep(1.5)            
         res , _ = wait_for_face()  # seconds       
@@ -484,8 +484,7 @@ class Find_sitting_place(smach.State):
             rospy.sleep(0.8)
             if not self.sat:
                 head.turn_base_gaze2(tf = place, to_gaze = 'base_link')
-                head.set_named_target('neutral')
-                brazo.set_named_target('neutral')
+                arm.set_named_target('pointing')
                 voice.talk(f'{name}, I found you a free place, sit here please.')
                 self.sat=True
                 if self.introduced:    #SHOULD ONLY BE TRUE IF NEW GGUEST HAS BEEN INTRODUCED TO EVERY ONE 
@@ -494,13 +493,13 @@ class Find_sitting_place(smach.State):
                     self.tries=0
                     self.intros=0    
                     if userdata.guest_num>=3:
+                        arm.set_named_target('navigation')
                         voice.talk('Task completed , Thanks for your attention')
                         return 'end'
                     else:                        
                         return 'succ'
                 else:
-                    head.set_named_target('neutral')
-                    brazo.set_named_target('go')                    
+                    arm.set_named_target('navigation')                    
                     return 'failed'
             else:return'failed'
         

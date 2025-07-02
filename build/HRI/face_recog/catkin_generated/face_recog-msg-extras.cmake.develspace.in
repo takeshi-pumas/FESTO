@@ -1,0 +1,2 @@
+set(face_recog_MESSAGE_FILES "/home/robotino/FESTO/src/HRI/face_recog/msg/Floats.msg;/home/robotino/FESTO/src/HRI/face_recog/msg/Image.msg;/home/robotino/FESTO/src/HRI/face_recog/msg/Strings.msg")
+set(face_recog_SERVICE_FILES "/home/robotino/FESTO/src/HRI/face_recog/srv/RecognizeFace.srv")

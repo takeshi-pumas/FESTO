@@ -1,0 +1,2 @@
+set(action_planner_MESSAGE_FILES "")
+set(action_planner_SERVICE_FILES "/home/robotino/FESTO/src/HRI/action_planner/srv/ActionPlanner.srv")

@@ -39,7 +39,7 @@ from ros_whisper_vosk.srv import SetGrammarVosk
 
 from utils import grasp_utils, misc_utils, nav_utils, receptionist_knowledge
 
-global listener, broadcaster, tfBuffer, tf_static_broadcaster, scene, rgbd, head,train_new_face, wrist, human_detect_server, line_detector, clothes_color
+global listener, broadcaster, tfBuffer, tf_static_broadcaster, scene, rgbd, train_new_face, wrist, human_detect_server, line_detector, clothes_color
 global clear_octo_client, goal,navclient,segmentation_server  , tf_man , omni_base, brazo, speech_recog_server, bridge, map_msg, pix_per_m, analyze_face , arm , set_grammar
 #   arm =  moveit_commander.MoveGroupCommander('arm')
 rospy.init_node('smach_receptionist')
@@ -87,7 +87,7 @@ gripper = grasp_utils.GRIPPER()
 omni_base = nav_utils.NAVIGATION()
 wrist= grasp_utils.WRIST_SENSOR()
 head = grasp_utils.GAZE()
-brazo = grasp_utils.ARM()
+arm = grasp_utils.ARM()
 line_detector = misc_utils.LineDetector()
 
 rgbd=RGBD()
