@@ -91,7 +91,7 @@ arm = grasp_utils.ARM()
 line_detector = misc_utils.LineDetector()
 
 rgbd=RGBD()
-voice = misc_utils.TALKER()
+voice = misc_utils.Talker()
 #party = receptionist_knowledge.RECEPTIONIST()
 
 # Functions

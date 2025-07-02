@@ -1,25 +1,32 @@
-#!/usr/bin/env python
-# python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import rospy
 import subprocess
 from std_msgs.msg import String
 
-def speakcall(data):
-    rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
-    text = data.data
-    subprocess.Popen(["espeak", "-v", "mb-us1","-s", "125", text])
+class EspeakNode:
+    def __init__(self):
+        rospy.init_node("speaker_node")
 
+        self.voice = rospy.get_param("~voice", "mb-en1")
+        self.speed = rospy.get_param("~speed", "150")
+
+        rospy.Subscriber("/robot_speech", String, self.speak_callback)
+        rospy.loginfo(f"Nodo speaker iniciado con voz {self.voice} y velocidad {self.speed}")
+        rospy.spin()
     
-def listener():
+    def speak_callback(self, msg):
+        text = msg.data.strip()
+        rospy.loginfo(f"speaking: {text}")
 
-    rospy.init_node("speaker_node")
+        try:
+            subprocess.Popen(["espeak", "-v", self.voice, "-s", str(self.speed), text])
+        except:
+            rospy.logerr("Error")
 
-    rospy.Subscriber("/speak", String, speakcall)
-
-
-    # spin() simply keeps python from exiting until this node is stopped
-    rospy.spin()
-
-if __name__ == '__main__':
-    listener()
+if __name__ == "__main__":
+    try:
+        EspeakNode()
+    except rospy.ROSInitException:
+        pass
