@@ -21,6 +21,7 @@ class Initial(smach.State):
             child_id = row['child_id_frame']
             print(f"{child_id}: x = {x}, y = {y}, z = {z}")
             tf_man.pub_static_tf(pos=[x,y,1.0],rot=[0,0,0,1],point_name=child_id)
+        
 
         print(seat_places)
         ###-----INIT GRAMMAR FOR VOSK
@@ -39,7 +40,7 @@ class Initial(smach.State):
         gram = drinks + names + confirmation + interest  
         rospack = rospkg.RosPack()        
         file_path = rospack.get_path('config_files') 
-        scarlett=cv2.imread(file_path+'/faces_for_recognition/scarlett/scarlett.png') #JOEL LAP 
+        scarlett=cv2.imread(file_path+'/faces_for_recognition/scarlett/scarlett.png') 
         print (type(scarlett))
         _description=analyze_face_from_image(scarlett,"scarlett")
         if self.tries == 1:
