@@ -1,179 +1,8 @@
 # -*- coding: utf-8 -*-
 import std_msgs.msg
 from utils.misc_utils import *
+import tf2_ros
 #from utils.nav_utils import OMNIBASE
-
-class GAZE:
-    def __init__(self, head_controller_topic = '/hsrb/head_trajectory_controller/command'):
-        self._x = 0
-        self._y = 0
-        self._z = 0
-        self._reference = 'map'
-        self._cam = 'head_rgbd_sensor_link'
-        self._base = 'base_link'
-        self._hand = 'hand_palm_link'
-        self._tf_man = TF_MANAGER()
-        self._pub = rospy.Publisher( head_controller_topic,
-            trajectory_msgs.msg.JointTrajectory, queue_size=10)
-        self.base_turn_pub = rospy.Publisher("simple_move/goal_dist_angle", 
-                                             std_msgs.msg.Float32MultiArray, queue_size=10)
-    def _gaze_point(self):
-    ###Moves head to make center point of rgbd image to coordinates w.r.t.map
-        trans,_ = self._tf_man.getTF(ref_frame=self._reference,target_frame=self._cam)
-        rospy.sleep(0.3)
-        _,rot = self._tf_man.getTF(ref_frame=self._reference, target_frame=self._base)
-        _,_, th_rob = tf.transformations.euler_from_quaternion(rot)
-        
-        x_rob, y_rob, z_rob = trans[0], trans[1], trans[2]
-        D_x = x_rob - self._x
-        D_y = y_rob - self._y
-        D_z = z_rob - self._z
-        D_th = np.arctan2(D_y,D_x)
-        #pan: horizontal angle, tilt: vertical angle
-        #keep pan angle between -2*pi and 2*pi
-        pan_correct = (- th_rob + D_th + np.pi) % (2*np.pi)
-        #pan mapping from pi and -pi
-        if pan_correct > np.pi:
-            pan_correct -= 2 * np.pi
-        elif pan_correct < -np.pi:
-            pan_correct += 2 * np.pi
-        tilt_correct = -np.arctan2(D_z,np.linalg.norm((D_x,D_y)))
-        #pan exorcist alert 
-        if abs(pan_correct) > 0.5 * np.pi:
-            print ('Exorcist alert')
-            # pan_correct=0.5*np.pi
-            self.set_joint_values([0.0, tilt_correct])
-            self.turn_base_gaze()
-            return [0.0, tilt_correct]
-            # return self._gaze_point()
-        else:    
-            head_pose = [pan_correct,  tilt_correct]
-            return head_pose
-    
-    def _gaze_abs_rel(self, x, y, z):
-        self._x = x
-        self._y = y
-        self._z = z
-        head_pose =  self._gaze_point()
-        self.set_joint_values(head_pose)
-        return head_pose
-
-    def absolute(self, x: float, y:float, z: float):
-        #Head gaze to a x, y, z point relative to map
-        self._reference = 'map'
-        return self._gaze_abs_rel(x,y,z)
-
-    def relative(self, x:float, y:float, z:float):
-        #Head gaze to a x, y, z point relative to base_link
-        self._reference = 'base_link'
-        return self._gaze_abs_rel(x,y,z)
-        
-    def set_named_target(self, pose='neutral'):
-        if pose == 'down':
-            head_pose = [0.0,-1.0]
-        elif pose == 'up':
-            head_pose = [0.0, 1.0]
-        elif pose == 'right':
-            head_pose = [0.7, 0.0]
-        elif pose == 'left':
-            head_pose = [-0.7, 0.0]
-        else:
-            head_pose = [0.0, 0.0]
-        self.set_joint_values(head_pose) 
-
-    def get_joint_values(self):
-        states = rospy.wait_for_message('/hsrb/joint_states', JointState)
-        st = states.position
-        return [st[9], st[10]]
-
-    def set_joint_values(self, head_pose = [0.0,0.0]):
-        # fill ROS message
-        traj = trajectory_msgs.msg.JointTrajectory()
-        traj.joint_names = ["head_pan_joint", "head_tilt_joint"]
-        p = trajectory_msgs.msg.JointTrajectoryPoint()
-        p.positions = head_pose
-        p.velocities = [0.1, 0.1]
-        p.time_from_start = rospy.Duration(0.07)
-        traj.points = [p]
-
-        # publish ROS message
-        self._pub.publish(traj)
-
-    def to_tf(self, target_frame='None'):
-        if target_frame != 'None':
-            rospy.sleep(0.5)
-            xyz,_ = self._tf_man.getTF(target_frame=target_frame)
-            rospy.sleep(0.8)
-            tries = 1
-            #type(xyz) is bool --> tf no encontrada
-            while (type(xyz) is bool): #and (tries <= 5):
-                #tries += 1
-                #print(tries)
-                #xyz,_ = self._tf_man.getTF(target_frame=target_frame)
-                #rospy.sleep(0.8)
-                num_loc = (int) (target_frame.replace('Place_face', ''))
-                locs = [[9.65,-2.02,0.0], [9.72,-2.1,0.0], [9.67,-3.06,0.0]]
-                loc =locs[num_loc-1]
-                xyz = [loc[0], loc[1], 0.85]
-                #for i, loc in enumerate(locs):
-                #    pos = [loc[0], loc[1], 0.85]
-            if type(xyz) is not bool:
-               self.absolute(*xyz)
-
-    def turn_base_gaze(self,tf='None', to_gaze = 'base_link'):
-        base = OMNIBASE()
-        succ = False
-        THRESHOLD = 0.05
-        tries = 0
-        if tf != 'None':
-            target_frame = tf
-        else:
-            target_frame = 'gaze'
-            self._tf_man.pub_static_tf(pos=[self._x,self._y,self._z], point_name='gaze')
-            rospy.sleep(0.1)
-        while (not succ) and (tries <=10):
-            tries += 1
-            rospy.sleep(0.4)
-            xyz,_=self._tf_man.getTF(target_frame=target_frame, ref_frame=to_gaze)
-            eT = 0
-            if type(xyz) is not bool:
-                eT = np.arctan2(xyz[1],xyz[0])
-                print(eT)
-                succ = abs(eT) < THRESHOLD 
-            if succ:
-                eT = 0
-            base.tiny_move(velT = eT, MAX_VEL_THETA=1.1)
-        return True
-    
-    def turn_base_gaze2(self,tf='None', to_gaze = 'base_link'):
-        base = OMNIBASE()
-        succ = False
-        THRESHOLD = 0.05
-        tries = 0
-        if tf != 'None':
-            target_frame = tf
-        else:
-            target_frame = 'gaze'
-            self._tf_man.pub_static_tf(pos=[self._x,self._y,self._z], point_name='gaze')
-            rospy.sleep(0.1)
-
-        xyz,_=self._tf_man.getTF(target_frame=target_frame, ref_frame=to_gaze)
-        rospy.sleep(0.6)
-        if type(xyz) is not bool:
-            eT = np.arctan2(xyz[1],xyz[0])
-            #publish
-            turn_dist = std_msgs.msg.Float32MultiArray()
-            turn_dist.data.append(0.0)
-            turn_dist.data.append(eT)
-            self.base_turn_pub.publish(turn_dist)
-        return True
-
-def set_pose_goal(pos=[0,0,0], rot=[0,0,0,1]):
-    pose_goal = Pose()
-    pose_goal.position = Point(*pos)
-    pose_goal.orientation = Quaternion(*rot)
-    return pose_goal
-
 
 class ARM:
     def __init__(self, joint_names = ["arm_lift_joint", "arm_flex_joint", "arm_roll_joint", "wrist_flex_joint", "wrist_roll_joint"],
@@ -218,6 +47,8 @@ class ARM:
             joint_values = [1.01, 0.23, -1.22, 0, -0.53]
         elif pose == 'table':
             joint_values = [1.01, -0.65, -0.64, 0.0, 0.1]
+        elif pose == 'head':
+            joint_values = [1.01, -1.5, 0.0, 0.0, 0.0]
         #go case
         else:   
             joint_values = [0.0, 0.0, -1.6, -1.6, 0.0]
@@ -270,6 +101,120 @@ class ARM:
                 rospy.logwarn("Failed to get transform: {}".format(str(e)))
                 continue
         return succ
+    
+class Gaze:
+    def __init__(self, 
+                 arm: ARM,
+                 pan_joint_idx=0, tilt_joint_idx=4,
+                 pan_limits=(1.5, 1.5), tilt_limits=(-1.2, 1.2),
+                 tf_timeout=0.5,
+                 camera_frame = 'camera_link',
+                 base_frame='base_link',
+                 reference_frame='map'
+                 ):
+        if not isinstance(arm, ARM):
+            raise TypeError("Expected 'arm' to be an instance of ARM class.")
+
+        self._arm = arm
+        self._tf_buffer = tf2_ros.Buffer()
+        self._tf_listener = tf2_ros.TransformListener(self._tf_buffer)
+
+        self._camera_frame = camera_frame
+        self._base_frame = base_frame
+        self._reference_frame = reference_frame
+        self._tf_timeout = tf_timeout
+
+        self._target_point = np.zeros(3)
+        self._pan_limits = pan_limits
+        self._tilt_limits = tilt_limits
+        self._pan_joint_idx = pan_joint_idx
+        self._tilt_joint_idx = tilt_joint_idx
+
+    def _get_transform(self, target_frame, source_frame):
+        try:
+            trans = self._tf_buffer.lookup_transform(
+                target_frame,
+                source_frame,
+                rospy.Time(0),
+                rospy.Duration(self._tf_timeout)
+            )
+            t = trans.transform.translation
+            r = trans.transform.rotation
+            translation = [t.x, t.y, t.z]
+            rotation = [r.x, r.y, r.z, r.w]
+            return translation, rotation
+        except Exception as e:
+            rospy.logwarn(f"[GazeArm] TF Error: {e}")
+            return None
+
+    def _calculate_pan_tilt(self):
+        camera_pose = self._get_transform(self._reference_frame, self._camera_frame)
+        base_pose = self._get_transform(self._reference_frame, self._base_frame)
+        if not camera_pose or not base_pose:
+            return 0.0, 0.0
+
+        camera_pos = np.array(camera_pose[0])
+        base_pos = np.array(base_pose[0])
+        _, _, base_yaw = tf.transformations.euler_from_quaternion(base_pose[1])
+        target_vector = self._target_point - base_pos
+
+        target_yaw = np.arctan2(target_vector[1], target_vector[0])
+        pan = target_yaw - base_yaw
+        pan = np.arctan2(np.sin(pan), np.cos(pan))
+
+        dz = camera_pos[2] - self._target_point[2]
+        dx = np.linalg.norm(target_vector[:2])
+        tilt = -np.arctan2(dz, dx)
+        tilt += -0.1  # compensación si hay inclinación de montaje
+
+        return pan, tilt
+
+    def move_head(self, pan, tilt, duration=2.0):
+        current_joints = self._arm.get_joint_values()
+        if current_joints is None:
+            rospy.logwarn("[GazeArm] No se pudo obtener el estado actual de las articulaciones.")
+            return False
+
+        joint_values = list(current_joints)
+        joint_values[self._pan_joint_idx] = np.clip(pan, *self._pan_limits)
+        joint_values[self._tilt_joint_idx] = np.clip(tilt, *self._tilt_limits)
+
+        return self._arm.set_joint_values(joint_values, duration)
+
+    def look_at(self, x, y, z, frame='map'):
+        self._target_point = np.array([x, y, z])
+        self._reference_frame = frame
+        self._arm.set_named_target('head')
+
+        try:
+            pan, tilt = self._calculate_pan_tilt()
+            return self.move_head(pan, tilt)
+        except Exception as e:
+            rospy.logerr(f"[GazeArm] Error en look_at: {e}")
+            return False
+
+    def look_at_frame(self, frame_id):
+        transform = self._get_transform(self._reference_frame, frame_id)
+        if not transform:
+            return False
+        return self.look_at(*transform[0], frame=self._reference_frame)
+    
+    def enter_head_mode(self):
+        self.set_named_target('head')
+        rospy.sleep(1.0)
+
+    def set_named_target(self, pose='neutral'):
+        poses = {
+            'neutral': [0.0, 0.0],
+            'left': [-1.0, 0.0],
+            'right': [1.0, 0.0],
+            'up': [0.0, 0.8],
+            'down': [0.0, -0.8]
+        }
+        pan, tilt = poses.get(pose, poses['neutral'])
+        return self.move_head(pan, tilt)
+
+
 
 
 from geometry_msgs.msg import Twist
