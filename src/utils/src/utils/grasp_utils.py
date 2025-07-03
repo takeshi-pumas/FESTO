@@ -37,22 +37,29 @@ class ARM:
         st = states.position
         return [st[0], st[1],st[2], st[3], st[4], st[5]]
 
-    def set_named_target(self, pose = 'go', duration = 5):
+    def set_named_target(self, pose = 'navigation', duration = 5):
 
-        if pose == 'face':
-            joint_values = [1.01, -0.03, -2.98, 0, 1.49]
-        elif pose == 'navigation':
-            joint_values = [1.01, -0.31, 0.03, 0, -0.51]
-        elif pose == 'pointing':
-            joint_values = [1.01, 0.23, -1.22, 0, -0.53]
-        elif pose == 'table':
-            joint_values = [1.01, -0.65, -0.64, 0.0, 0.1]
-        elif pose == 'head':
-            joint_values = [1.01, -0.965, -0.489, 0.0, -0.131]
-        #go case
-        else:   
-            joint_values = [0.0, 0.0, -1.6, -1.6, 0.0]
+        poses = {
+            'face': [1.01, -0.03, -2.98, 0, 1.49],
+            'navigation': [1.01, -0.31, 0.03, 0, -0.51],
+            'pointing': [1.01, 0.23, -1.22, 0, -0.53],
+            'table': [1.01, -0.65, -0.64, 0.0, 0.1],
+            'head': [1.01, -0.965, -0.489, 0.0, -0.131],
+            'neutral': [0.0, 0.0, 0.0, -1.6, -1.6,]
+        }
+        joint_values = poses.get(pose, poses['neutral'])
         self.set_joint_values(joint_values, duration=duration)
+    
+    def get_named_target(self, pose = 'navigation'):
+        poses = {
+            'face': [1.01, -0.03, -2.98, 0, 1.49],
+            'navigation': [1.01, -0.31, 0.03, 0, -0.51],
+            'pointing': [1.01, 0.23, -1.22, 0, -0.53],
+            'table': [1.01, -0.65, -0.64, 0.0, 0.1],
+            'head': [1.01, -0.965, -0.489, 0.0, -0.131],
+            'neutral': [0.0, 0.0, 0.0, -1.6, -1.6,]
+        }
+        return poses.get(pose, poses['neutral'])
 
     def check_grasp(self, weight = 1.0):
         
@@ -177,7 +184,7 @@ class GAZE:
             rospy.logwarn("[GazeArm] No se pudo obtener el estado actual de las articulaciones.")
             return False
 
-        joint_values = list(current_joints)
+        joint_values = self._arm.get_named_target("head")
         joint_values[self._pan_joint_idx] = np.clip(pan + self.pan_offset, *self._pan_limits)
         joint_values[self._tilt_joint_idx] = np.clip(tilt, *self._tilt_limits)
 
@@ -187,7 +194,7 @@ class GAZE:
     def look_at(self, x, y, z, frame='map'):
         self._target_point = np.array([x, y, z])
         self._reference_frame = frame
-        self._arm.set_named_target('head', duration=2.0)
+        #self._arm.set_named_target('head', duration=2.0)
 
         try:
             pan, tilt = self._calculate_pan_tilt()
