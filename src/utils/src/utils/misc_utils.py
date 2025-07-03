@@ -28,7 +28,7 @@ from os import path
 
 
 class RGBD:
-    def __init__(self, PC_rectified_point_topic = "/points"):
+    def __init__(self, PC_rectified_point_topic = "camera/depth_registered/points"):
         self._br = tf.TransformBroadcaster()
         self._cloud_sub = rospy.Subscriber(PC_rectified_point_topic,
             PointCloud2, self._cloud_cb)
@@ -67,7 +67,8 @@ class RGBD:
             msg.header.frame_id)
 
     def get_image(self):
-        return self._image_data
+        rgb_img = cv2.cvtColor(self._image_data, cv2.COLOR_BGR2RGB)
+        return rgb_img
 
     def get_points(self):
         return self._points_data

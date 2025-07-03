@@ -16,15 +16,22 @@ class RegionSegmentationServer:
         rospy.loginfo("Servidor de segmentación de regiones iniciado.")
 
         # Cargar el archivo YAML con las regiones y el mapa
-        yaml_path = rospy.get_param("~map_yaml", "/home/takeshi/catkin_extras/src/navigation_pumas/config_files/prohibition_maps/map_lab_2024/map.yaml")
-        rospy.loginfo(f"Cargando YAML del mapa y regiones: {yaml_path}")
-        with open(yaml_path, "r") as file:
-            map_data = yaml.safe_load(file)
+        self.yaml_path = rospy.get_param("~map_yaml", "/home/robotino/FESTO/src/Navigation/config_files/prohibition_maps/map_lab_2024/map.yaml")
+        try:
+            rospy.loginfo(f"Cargando YAML del mapa y regiones: {self.yaml_path}")
+            with open(self.yaml_path, "r") as file:
+                self.map_data = yaml.safe_load(file)
 
-        self.regions_data = map_data["regions"]  # Regiones definidas en el YAML
-        self.resolution = map_data["resolution"]  # Resolución del mapa
-        self.origin = map_data["origin"]  # Origen del mapa
-        rospy.loginfo(f"Resolución del mapa: {self.resolution}, Origen: {self.origin}")
+            self.regions_data = self.map_data.get("regions", {})
+            self.resolution = self.map_data["resolution"]
+            self.origin = self.map_data["origin"]
+
+            rospy.loginfo(f"🗺️ Mapa y regiones cargadas correctamente con {len(self.regions_data)} regiones.")
+
+        except Exception as e:
+            rospy.logerr(f"❌ Error al cargar el archivo YAML: {e}")
+            rospy.signal_shutdown("Fallo crítico cargando regiones")
+            return
 
         self.bridge = CvBridge()
 

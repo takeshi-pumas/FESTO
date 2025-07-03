@@ -7,6 +7,7 @@ from std_srvs.srv import Trigger, TriggerResponse
 import tf2_ros
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 from object_classification.srv import *
+from segmentation.srv import *
 from human_detector.srv import Human_detector ,Human_detectorResponse 
 from ros_whisper_vosk.srv import GetSpeech
 from face_recog.msg import *
@@ -57,42 +58,41 @@ recognize_face = rospy.ServiceProxy('recognize_face', RecognizeFace)            
 train_new_face = rospy.ServiceProxy('new_face', RecognizeFace)                          #FACE RECOG
 analyze_face = rospy.ServiceProxy('analyze_face', RecognizeFace)    ###DEEP FACE ONLY
 classify_client_dino = rospy.ServiceProxy('grounding_dino_detect', Classify_dino_receptionist) #beverage recognition
-
+segment_service = rospy.ServiceProxy("segment_region", SegmentRegion) # Beverage area segmentation
 
 
 enable_mic_pub = rospy.Publisher('/talk_now', Bool, queue_size=10)
 
 # Utils
-#rgbd= misc_utils.RGBD()  ## WARNING USE UTILS FOR REAL THIS IS OFR DEBUGING
-class RGBD:
-    def __init__(self, camera_topic = "/usb_cam/image_raw"):   ## USB CAM! DONT USE REAL ROBOT !!! BE SURE POINTS ARE BEEIN REEAD IN UTILS
-        self.cam_sub = rospy.Subscriber(camera_topic,
-            Image, self._callback)
-        self._points_data = None
-        self._image_data = None
+rgbd= misc_utils.RGBD()  ## WARNING USE UTILS FOR REAL THIS IS OFR DEBUGING
+# class RGBD:
+#     def __init__(self, camera_topic = "camera/depth_registered/points"):   ## USB CAM! DONT USE REAL ROBOT !!! BE SURE POINTS ARE BEEIN REEAD IN UTILS
+#         self.cam_sub = rospy.Subscriber(camera_topic,
+#             Image, self._callback)
+#         self._points_data = None
+#         self._image_data = None
 
-    def _callback(self, msg):
-        self._image_data = ros_numpy.numpify(msg)
+#     def _callback(self, msg):
+#         self._image_data = ros_numpy.numpify(msg)
 
-    def get_image(self):
-        image = self._image_data
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        return image
+#     def get_image(self):
+#         image = self._image_data
+#         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+#         return image
 #############################################3
-
 bridge = CvBridge()
 tf_man = misc_utils.TF_MANAGER()
-gripper = grasp_utils.GRIPPER()
+#gripper = grasp_utils.GRIPPER()
 omni_base = nav_utils.NAVIGATION()
-wrist= grasp_utils.WRIST_SENSOR()
-head = grasp_utils.GAZE()
-arm = grasp_utils.ARM()
+#wrist= grasp_utils.WRIST_SENSOR()
+#head = grasp_utils.GAZE()
+arm = grasp_utils.ARM(joint_names = ["joint1", "joint2", "joint3", "joint4", "joint5", "joint6"], 
+                      arm_controller_action_client = "/xarm/xarm6_traj_controller/follow_joint_trajectory")
 line_detector = misc_utils.LineDetector()
 
-rgbd=RGBD()
+#rgbd=RGBD()
 voice = misc_utils.Talker()
-#party = receptionist_knowledge.RECEPTIONIST()
+party = receptionist_knowledge.RECEPTIONIST()
 
 # Functions
 def places_2_tf():
@@ -130,9 +130,11 @@ def wait_for_face(timeout=10 , name=''):
     string_msg= String()
     string_msg.data='Anyone'
     while rospy.get_time() - start_time < timeout:
-        img=rgbd.get_image()
+        #img = rospy.wait_for_message('/camera/rgb/image_color',Image,1.0)
+        img = rgbd.get_image()
+
         req=RecognizeFaceRequest()
-        print ('Got  image with shape',img.shape)
+        #print ('Got  image with shape',img.shape)
         req.Ids.ids.append(string_msg)
         img_msg=bridge.cv2_to_imgmsg(img[:,150:-150])
         req.in_.image_msgs.append(img_msg)
@@ -248,9 +250,10 @@ def analyze_face_background(img, name=" "):
 def get_favorite_drink_location(favorite_drink):
     bridge = CvBridge()
     # Convert image to ROS format
-    pointcloud_msg = rospy.wait_for_message("/hsrb/head_rgbd_sensor/depth_registered/rectified_points", PointCloud2)
-    img_msg = rospy.wait_for_message('/hsrb/head_rgbd_sensor/rgb/image_raw', Image, timeout=5)
-    img = bridge.imgmsg_to_cv2(img_msg,"bgr8")
+    pointcloud_msg = rospy.wait_for_message("camera/depth_registered/points", PointCloud2)
+    # img_msg = rospy.wait_for_message('/hsrb/head_rgbd_sensor/rgb/image_raw', Image, timeout=5)
+    # img = bridge.imgmsg_to_cv2(img_msg,"bgr8")
+    img = rgbd.get_image()
     if pointcloud_msg is None:
         rospy.logerr("No se recibió la nube de puntos.")
         return
@@ -262,17 +265,18 @@ def get_favorite_drink_location(favorite_drink):
         request = SegmentRegionRequest(pointcloud=pointcloud_msg, region_name=region_name)
         response = segment_service(request)
 
-        if response.success:
-            bridge = CvBridge()
-            mask = bridge.imgmsg_to_cv2(response.mask, "mono8")
-            # **Aplicar operaciones morfológicas para reducir ruido**
-            kernel = np.ones((13, 13), np.uint8)  # Define un kernel de 5x5 (ajustable)
-            mask = cv2.dilate(mask, kernel, iterations=4)  # **Rellena huecos**
-            #mask = cv2.erode(mask, kernel, iterations=1)  # **Reduce pequeños artefactos**
-            segment_img = cv2.bitwise_and(img, img, mask=mask)
-            cv2.imwrite("img_debug.png",segment_img)
-        else:
+        if not response.success:
             rospy.logwarn("Error en segmentación: " + response.message)
+            return False, "Segmentación fallida"
+        bridge = CvBridge()
+        mask = bridge.imgmsg_to_cv2(response.mask, "mono8")
+        # **Aplicar operaciones morfológicas para reducir ruido**
+        kernel = np.ones((13, 13), np.uint8)  # Define un kernel de 5x5 (ajustable)
+        mask = cv2.dilate(mask, kernel, iterations=4)  # **Rellena huecos**
+        #mask = cv2.erode(mask, kernel, iterations=1)  # **Reduce pequeños artefactos**
+        segment_img = cv2.bitwise_and(img, img, mask=mask)
+        cv2.imwrite("img_debug.png",segment_img)
+        
     except rospy.ServiceException as e:
         rospy.logerr("Error llamando al servicio: %s" % e)
     print("Message Received")

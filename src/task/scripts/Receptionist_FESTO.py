@@ -115,7 +115,7 @@ class Goto_door(smach.State):  # ADD KNONW LOCATION DOOR
     def execute(self, userdata):
 
         rospy.loginfo('STATE : Navigate to known location: Door')
-
+        arm.set_named_target('navigation')
         print(f'Try {self.tries} of 3 attempts')
         self.tries += 1
         if self.tries == 3:
@@ -368,6 +368,7 @@ class Lead_to_beverage_area(smach.State):
         self.tries = 0
 
     def execute(self, userdata):
+        arm.set_named_target('navigation')
         rospy.loginfo('STATE : navigate to known beverage area')
         print('Try', self.tries, 'of 3 attempts')
 
