@@ -37,6 +37,7 @@ poses = [[1.01, -0.03, -2.98, 0, 1.49],[1.01, -0.31, 0.03, 0, -0.51], [1.01, 0.2
     #arm.set_joint_values(joint_values = pose)
     #rospy.sleep(1.0)
 
-arm.set_named_target("head")
-head.look_at(x = 2.0, y = 0.0, z = 2.0, frame = "base_link")
+#arm.set_named_target("head")
+head.look_at(x = 2.0, y = -1.5, z = 0.0, frame = "base_link")
+#head.move_head(pan = 0, tilt= 0)
 rospy.spin()
