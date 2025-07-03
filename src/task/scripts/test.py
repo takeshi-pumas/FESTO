@@ -8,6 +8,9 @@ voice = misc_utils.Talker()
 rospy.sleep(0.2)
 arm = grasp_utils.ARM(joint_names = ["joint1", "joint2", "joint3", "joint4", "joint5", "joint6"], 
                       arm_controller_action_client = "/xarm/xarm6_traj_controller/follow_joint_trajectory")
+
+head = grasp_utils.GAZE(arm = arm)
+
 rospy.sleep(0.1)
 
 result = voice.talk(sentence = "hello, my name is festino", wait = True)
@@ -27,8 +30,13 @@ poses = [[1.01, -0.03, -2.98, 0, 1.49],[1.01, -0.31, 0.03, 0, -0.51], [1.01, 0.2
 # 58, -37.2, -36.9, 0, 5.7, 0 #table
 #1.01, 0.65, 0.64, 0.0, 0.1, 0
 
-for pose in poses:
-    print(pose)
-    arm.set_joint_values(joint_values = pose)
-    rospy.sleep(1.0)
+#arm.set_joint_values(joint_values = poses[1])
+
+#for pose in poses:
+#    print(pose)
+    #arm.set_joint_values(joint_values = pose)
+    #rospy.sleep(1.0)
+
+arm.set_named_target("head")
+head.look_at(x = 2.0, y = 0.0, z = 2.0, frame = "base_link")
 rospy.spin()

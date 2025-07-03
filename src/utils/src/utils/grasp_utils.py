@@ -48,7 +48,7 @@ class ARM:
         elif pose == 'table':
             joint_values = [1.01, -0.65, -0.64, 0.0, 0.1]
         elif pose == 'head':
-            joint_values = [1.01, -1.5, 0.0, 0.0, 0.0]
+            joint_values = [1.01, -0.965, -0.489, 0.0, -0.131]
         #go case
         else:   
             joint_values = [0.0, 0.0, -1.6, -1.6, 0.0]
@@ -102,7 +102,7 @@ class ARM:
                 continue
         return succ
     
-class Gaze:
+class GAZE:
     def __init__(self, 
                  arm: ARM,
                  pan_joint_idx=0, tilt_joint_idx=4,
@@ -176,10 +176,11 @@ class Gaze:
             return False
 
         joint_values = list(current_joints)
+        print(joint_values)
         joint_values[self._pan_joint_idx] = np.clip(pan, *self._pan_limits)
         joint_values[self._tilt_joint_idx] = np.clip(tilt, *self._tilt_limits)
 
-        return self._arm.set_joint_values(joint_values, duration)
+        return self._arm.set_joint_values(joint_values[:5], duration)
 
     def look_at(self, x, y, z, frame='map'):
         self._target_point = np.array([x, y, z])

@@ -340,7 +340,8 @@ def listener():
     #rospy.init_node('image_tag_rgbd', anonymous=True)
     
     tf_listener = tf.TransformListener() 
-    ptcld_lis=rospy.Subscriber("/hsrb/head_rgbd_sensor/depth_registered/rectified_points",PointCloud2, callback)
+    #ptcld_lis=rospy.Subscriber("/hsrb/head_rgbd_sensor/depth_registered/rectified_points",PointCloud2, callback)
+    ptcld_lis=rospy.Subscriber("camera/depth_registered/points",PointCloud2, callback)
     #ptcld_lis=rospy.Subscriber("/hsrb/head_r_stereo_camera/image_raw",PointCloud2, callback)
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
