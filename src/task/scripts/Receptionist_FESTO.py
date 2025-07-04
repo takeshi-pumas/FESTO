@@ -394,7 +394,8 @@ class Find_drink(smach.State):
         rospy.loginfo('STATE : Scan table to find beverages')
         self.tries += 1
         print('Try', self.tries, 'of 3 attempts')
-
+        arm.set_named_target('table')
+        rospy.sleep(3)
         favorite_drink = userdata.favorite_drink
         #favorite_drink = "water"
         
@@ -408,7 +409,6 @@ class Find_drink(smach.State):
         # arm.go(av)
         # brazo.set_joint_values([0.160 , 0.0, -1.57,-1.57, 0.0])
         # head.set_joint_values([0.0, -0.5])
-        arm.set_named_target('table')
         rospy.sleep(3)
 
         res,position = get_favorite_drink_location(favorite_drink)
@@ -432,6 +432,7 @@ class Lead_to_living_room(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('STATE : navigate to known location')
+        arm.set_named_target('navigation')
         print('Try', self.tries, 'of 3 attempts')
 
         voice.talk(f"{party.get_active_guest_name()}... Follow me to living room")
@@ -488,6 +489,8 @@ class Find_sitting_place(smach.State):
                 head.look_at_frame(frame_id = place)
                 arm.set_named_target('pointing')
                 voice.talk(f'{name}, I found you a free place, sit here please.')
+                rospy.sleep(3)
+                head.look_at_frame(frame_id = place)
                 self.sat=True
                 if self.introduced:    #SHOULD ONLY BE TRUE IF NEW GGUEST HAS BEEN INTRODUCED TO EVERY ONE 
                     self.sat=False
@@ -495,13 +498,11 @@ class Find_sitting_place(smach.State):
                     self.tries=0
                     self.intros=0    
                     if userdata.guest_num>=3:
-                        arm.set_named_target('navigation')
                         voice.talk('Task completed , Thanks for your attention')
                         return 'end'
                     else:                        
                         return 'succ'
-                else:
-                    arm.set_named_target('navigation')                    
+                else:                    
                     return 'failed'
             else:return'failed'
         

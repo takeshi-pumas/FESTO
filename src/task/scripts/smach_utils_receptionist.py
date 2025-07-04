@@ -137,7 +137,7 @@ def wait_for_face(timeout=10 , name=''):
         req=RecognizeFaceRequest()
         #print ('Got  image with shape',img.shape)
         req.Ids.ids.append(string_msg)
-        img_msg=bridge.cv2_to_imgmsg(img[:,200:200])
+        img_msg=bridge.cv2_to_imgmsg(img)
         req.in_.image_msgs.append(img_msg)
 
         res= recognize_face(req)
