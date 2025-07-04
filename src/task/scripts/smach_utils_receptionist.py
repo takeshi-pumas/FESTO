@@ -85,9 +85,10 @@ tf_man = misc_utils.TF_MANAGER()
 #gripper = grasp_utils.GRIPPER()
 omni_base = nav_utils.NAVIGATION()
 #wrist= grasp_utils.WRIST_SENSOR()
-#head = grasp_utils.GAZE()
+
 arm = grasp_utils.ARM(joint_names = ["joint1", "joint2", "joint3", "joint4", "joint5", "joint6"], 
                       arm_controller_action_client = "/xarm/xarm6_traj_controller/follow_joint_trajectory")
+head = grasp_utils.GAZE(arm = arm)
 line_detector = misc_utils.LineDetector()
 
 #rgbd=RGBD()
@@ -136,7 +137,7 @@ def wait_for_face(timeout=10 , name=''):
         req=RecognizeFaceRequest()
         #print ('Got  image with shape',img.shape)
         req.Ids.ids.append(string_msg)
-        img_msg=bridge.cv2_to_imgmsg(img[:,150:-150])
+        img_msg=bridge.cv2_to_imgmsg(img[:,200:200])
         req.in_.image_msgs.append(img_msg)
 
         res= recognize_face(req)
