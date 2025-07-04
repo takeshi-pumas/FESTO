@@ -2,6 +2,7 @@
 import std_msgs.msg
 from utils.misc_utils import *
 import tf2_ros
+from std_msgs.msg import Bool
 #from utils.nav_utils import OMNIBASE
 
 class ARM:
@@ -272,3 +273,21 @@ class BASE:
     def turn_radians(self, time, radians):
         vel_theta = radians / time
         self.tiny_move(velT= vel_theta, std_time= time, MAX_VEL_THETA= vel_theta)
+
+class BUMPER:
+    def __init__(self, bumper_topic='/bumper'):
+        self._bumper_sub = rospy.Subscriber(bumper_topic, Bool, self._bumper_callback)
+        self._bumper_pressed = False
+
+    def _bumper_callback(self, msg):
+        self._bumper_pressed = msg.data
+
+    def is_bumper_pressed(self):
+        return self._bumper_pressed
+    
+    def wait_for_bumper(self, timeout=10.0):
+        start_time = rospy.Time.now().to_sec()
+        while not rospy.is_shutdown() and (rospy.Time.now().to_sec() - start_time) < timeout:
+            rospy.sleep(0.1)
+            return self.is_bumper_pressed()
+    
