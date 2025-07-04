@@ -35,7 +35,7 @@ from hri_msgs.msg import RecognizedSpeech
 from rospy.exceptions import ROSException
 import rospkg
 import yaml
-from act_recog.srv import Recognize,RecognizeResponse,RecognizeRequest
+#from act_recog.srv import Recognize,RecognizeResponse,RecognizeRequest
 from object_classification.srv import *
 from segmentation.srv import SegmentRegion, SegmentRegionRequest
 
@@ -78,7 +78,7 @@ set_grammar = rospy.ServiceProxy('set_grammar_vosk', SetGrammarVosk)            
 recognize_face = rospy.ServiceProxy('recognize_face', RecognizeFace)                    #FACE RECOG
 train_new_face = rospy.ServiceProxy('new_face', RecognizeFace)                          #FACE RECOG
 analyze_face = rospy.ServiceProxy('analyze_face', RecognizeFace)    ###DEEP FACE ONLY
-recognize_action = rospy.ServiceProxy('recognize_act', Recognize) 
+#recognize_action = rospy.ServiceProxy('recognize_act', Recognize) 
 classify_client = rospy.ServiceProxy('/classify', Classify)
 classify_client_dino = rospy.ServiceProxy('grounding_dino_detect', Classify_dino)
 segment_service = rospy.ServiceProxy("segment_region", SegmentRegion)
@@ -92,16 +92,16 @@ segment_service = rospy.ServiceProxy("segment_region", SegmentRegion)
 #contoured=cv2.drawContours(img_map.astype('uint8'), contours, 1, (255,255,255), 1)
 
 rgbd= RGBD()
-hand_rgb = HAND_RGB()
+#hand_rgb = HAND_RGB()
 
 bridge = CvBridge()
 #segmentation_server = rospy.ServiceProxy('/segment_2_tf', Trigger) 
 tf_man = TF_MANAGER()
-gripper = GRIPPER()
+#gripper = GRIPPER()
 #omni_base=OMNIBASE()        #  NAV ACTION
 #omni_base=NAVIGATION()     #  nav UTILS
-wrist= WRIST_SENSOR()
-head = GAZE()
+#wrist= WRIST_SENSOR()
+#head = GAZE()
 brazo = ARM()
 line_detector = LineDetector()
 # arm =  moveit_commander.MoveGroupCommander('arm')

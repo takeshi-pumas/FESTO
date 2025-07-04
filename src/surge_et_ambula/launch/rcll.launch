@@ -9,7 +9,7 @@
     <node name="move_base" pkg="simple_move" type="move_base" output="screen" />
     <node name="aling_with_line" pkg="simple_move" type="aling_with_line" output="screen" />
     <node name="aruco_tf_srv" pkg="img_proc" type="aruco_tf_srv" output="screen" />
-    <node name="talker" pkg="robotino_talk" type="speaker.py" />    
+    <node name="talker" pkg="robotino_talk" type="speaker_pico.py" />    
 
     <include file="$(find planning_xarm)/launch/realMove_exec.launch">
         <arg name="robot_ip" value="$(arg robot_ip)" />

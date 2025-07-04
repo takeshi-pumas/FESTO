@@ -292,7 +292,7 @@ def callback(points_msg):
                 rospy.logerr("Error llamando al servicio: %s" % e)
 
         elif key == 'd':        # Usar Dino para object classification by prompt
-            prompt = "chair"     #put here favorite drink
+            prompt = "coke"     #put here favorite drink
             img=rgbd.get_image()
             #cv2.imwrite('img.png',img)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)

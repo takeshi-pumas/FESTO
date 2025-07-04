@@ -85,9 +85,10 @@ tf_man = misc_utils.TF_MANAGER()
 #gripper = grasp_utils.GRIPPER()
 omni_base = nav_utils.NAVIGATION()
 #wrist= grasp_utils.WRIST_SENSOR()
-#head = grasp_utils.GAZE()
+
 arm = grasp_utils.ARM(joint_names = ["joint1", "joint2", "joint3", "joint4", "joint5", "joint6"], 
                       arm_controller_action_client = "/xarm/xarm6_traj_controller/follow_joint_trajectory")
+head = grasp_utils.GAZE(arm = arm)
 line_detector = misc_utils.LineDetector()
 
 #rgbd=RGBD()
@@ -136,7 +137,7 @@ def wait_for_face(timeout=10 , name=''):
         req=RecognizeFaceRequest()
         #print ('Got  image with shape',img.shape)
         req.Ids.ids.append(string_msg)
-        img_msg=bridge.cv2_to_imgmsg(img[:,150:-150])
+        img_msg=bridge.cv2_to_imgmsg(img[:,200:200])
         req.in_.image_msgs.append(img_msg)
 
         res= recognize_face(req)
@@ -256,31 +257,31 @@ def get_favorite_drink_location(favorite_drink):
     img = rgbd.get_image()
     if pointcloud_msg is None:
         rospy.logerr("No se recibió la nube de puntos.")
-        return
-    rospy.loginfo("Nube de puntos recibida. Enviando solicitud de segmentación...")
-    # Nombre de la región a segmentar (ajustar según el YAML)
-    region_name = "beverage_area"
-    rospy.wait_for_service("segment_region")
-    try:
-        request = SegmentRegionRequest(pointcloud=pointcloud_msg, region_name=region_name)
-        response = segment_service(request)
+        return False, "Clasificacion fallida"
+    # rospy.loginfo("Nube de puntos recibida. Enviando solicitud de segmentación...")
+    # # Nombre de la región a segmentar (ajustar según el YAML)
+    # region_name = "beverage_area"
+    # rospy.wait_for_service("segment_region")
+    # try:
+    #     request = SegmentRegionRequest(pointcloud=pointcloud_msg, region_name=region_name)
+    #     response = segment_service(request)
 
-        if not response.success:
-            rospy.logwarn("Error en segmentación: " + response.message)
-            return False, "Segmentación fallida"
-        bridge = CvBridge()
-        mask = bridge.imgmsg_to_cv2(response.mask, "mono8")
-        # **Aplicar operaciones morfológicas para reducir ruido**
-        kernel = np.ones((13, 13), np.uint8)  # Define un kernel de 5x5 (ajustable)
-        mask = cv2.dilate(mask, kernel, iterations=4)  # **Rellena huecos**
-        #mask = cv2.erode(mask, kernel, iterations=1)  # **Reduce pequeños artefactos**
-        segment_img = cv2.bitwise_and(img, img, mask=mask)
-        cv2.imwrite("img_debug.png",segment_img)
+    #     if not response.success:
+    #         rospy.logwarn("Error en segmentación: " + response.message)
+    #         return False, "Segmentación fallida"
+    #     bridge = CvBridge()
+    #     mask = bridge.imgmsg_to_cv2(response.mask, "mono8")
+    #     # **Aplicar operaciones morfológicas para reducir ruido**
+    #     kernel = np.ones((13, 13), np.uint8)  # Define un kernel de 5x5 (ajustable)
+    #     mask = cv2.dilate(mask, kernel, iterations=4)  # **Rellena huecos**
+    #     #mask = cv2.erode(mask, kernel, iterations=1)  # **Reduce pequeños artefactos**
+    #     segment_img = cv2.bitwise_and(img, img, mask=mask)
+    #     cv2.imwrite("img_debug.png",segment_img)
         
-    except rospy.ServiceException as e:
-        rospy.logerr("Error llamando al servicio: %s" % e)
+    # except rospy.ServiceException as e:
+    #     rospy.logerr("Error llamando al servicio: %s" % e)
     print("Message Received")
-    ros_image=bridge.cv2_to_imgmsg(segment_img,encoding="bgr8")
+    ros_image=bridge.cv2_to_imgmsg(img,encoding="bgr8")
     prompt_msg = String()
     prompt_msg.data = favorite_drink
 

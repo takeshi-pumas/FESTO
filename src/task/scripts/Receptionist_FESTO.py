@@ -476,7 +476,7 @@ class Find_sitting_place(smach.State):
 
         place='seat_place_'+str(self.tries)
         print (place)
-        head.turn_base_gaze2(tf = place, to_gaze = 'base_link')
+        head.look_at_frame(frame_id = place)
         #voice.talk('I will check if this place is empty')
         rospy.sleep(1.5)            
         res , _ = wait_for_face()  # seconds       
@@ -485,7 +485,7 @@ class Find_sitting_place(smach.State):
         if not res:              # IF a seat is found.
             rospy.sleep(0.8)
             if not self.sat:
-                head.turn_base_gaze2(tf = place, to_gaze = 'base_link')
+                head.look_at_frame(frame_id = place)
                 arm.set_named_target('pointing')
                 voice.talk(f'{name}, I found you a free place, sit here please.')
                 self.sat=True
@@ -571,7 +571,7 @@ class Find_guests(smach.State):
 
         voice.talk(f'Looking for guest {self.tries} on: {guest_loc}')
         tf_host = guest_loc.replace('_', '_face')
-        head.to_tf(tf_host)
+        head.look_at_frame(frame_id = tf_host)
 
         voice.talk("Look at me, please")
         rospy.sleep(0.7)
