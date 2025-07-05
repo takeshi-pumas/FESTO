@@ -15,7 +15,17 @@ class ARM:
         self._tf_man = TF_MANAGER()
         #self._grasp_base = OMNIBASE()
 
-    def set_joint_values(self, joint_values = [0.0, 0.0, -1.6, -1.6, 0.0], duration = 5.0):
+    def set_joint_values(self, 
+                         joint_values : list = [0.0, 0.0, -1.6, -1.6, 0.0], 
+                         duration = 5, 
+                         tolerance = 0.05):
+        current_values = self.get_joint_values()
+        
+        diff = [abs(c - t) for c, t in zip(current_values, joint_values)]
+        if all(d < tolerance for d in diff):
+            rospy.loginfo("Target joint values are within tolerance. Skipping motion.")
+            return True  # no need to move
+        
         goal = control_msgs.msg.FollowJointTrajectoryGoal()
         traj = trajectory_msgs.msg.JointTrajectory()
         traj.joint_names = self._joint_names
@@ -62,22 +72,22 @@ class ARM:
         }
         return poses.get(pose, poses['neutral'])
 
-    def check_grasp(self, weight = 1.0):
+    # def check_grasp(self, weight = 1.0):
         
-        force = self._wrist.get_force()
-        force = np.linalg.norm(np.array(force))
-        if force > weight:
-            return True
-        else:
-            l_finger = 'hand_l_finger_tip_frame'
-            r_finger = 'hand_r_finger_tip_frame'
-            dist,_ = self._tf_man.getTF(target_frame=r_finger, ref_frame=l_finger)
-            np.array(dist)
-            dist = np.linalg.norm(dist)
-            if dist > 0.02:
-                return True
-            else:
-                return False
+    #     force = self._wrist.get_force()
+    #     force = np.linalg.norm(np.array(force))
+    #     if force > weight:
+    #         return True
+    #     else:
+    #         l_finger = 'hand_l_finger_tip_frame'
+    #         r_finger = 'hand_r_finger_tip_frame'
+    #         dist,_ = self._tf_man.getTF(target_frame=r_finger, ref_frame=l_finger)
+    #         np.array(dist)
+    #         dist = np.linalg.norm(dist)
+    #         if dist > 0.02:
+    #             return True
+    #         else:
+    #             return False
             
     def move_hand_to_target(self, target_frame = 'target', offset=[0,0,0], THRESHOLD = 0.05):
         succ = False
