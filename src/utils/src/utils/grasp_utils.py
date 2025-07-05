@@ -209,7 +209,7 @@ class GAZE:
 
         try:
             pan, tilt = self._calculate_pan_tilt()
-            return self.move_head(pan, tilt)
+            return self.move_head(pan, tilt, duration=3.5)
         except Exception as e:
             rospy.logerr(f"[GazeArm] Error en look_at: {e}")
             return False
