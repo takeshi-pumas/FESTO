@@ -801,7 +801,7 @@ def detect_human_to_pt_st(dist = 6,remove_bkg = True):
         rospy.sleep(0.5)
         point_st= PointStamped()
         point_st.header.stamp = rospy.Time.now()
-        point_st.header.frame_id = "head_rgbd_sensor_rgb_frame"#'odom'  # or whatever frame you're using
+        point_st.header.frame_id = "camera_depth_optical_frame"#'odom'  # or whatever frame you're using
         point_st.point.x = humanpose.x  # replace with your x coordinate
         point_st.point.y = humanpose.y  # replace with your y coordinate
         point_st.point.z =  0.0 ###FLOOR ### humanpose.z  # replace with your z coordinate
@@ -821,11 +821,13 @@ def get_luggage_tf():
     #cv2.imwrite('img.png',img)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     # Convert image to ROS format
+    
+    rospy.sleep(3.0)
     ros_image = bridge.cv2_to_imgmsg(img, encoding="bgr8")
     points= rgbd.get_points()
 
 
-    points_msg=rospy.wait_for_message("/hsrb/head_rgbd_sensor/depth_registered/rectified_points",PointCloud2,timeout=5)
+    points_msg=rospy.wait_for_message("camera/depth_registered/points",PointCloud2,timeout=5.0)
     points_data = ros_numpy.numpify(points_msg)    
     
 
@@ -843,7 +845,7 @@ def get_luggage_tf():
     #CORRECT POINTS###################
     ################
     try:
-            trans = tfBuffer.lookup_transform('map', 'head_rgbd_sensor_link', rospy.Time())
+            trans = tfBuffer.lookup_transform('map', 'camera_depth_optical_frame', rospy.Time())
                         
             trans,rot=read_tf(trans)
             #print ("############head",trans,rot)
@@ -878,7 +880,7 @@ def get_luggage_tf():
                     np.nanmean(points['z'][y_min:y_max, x_min:x_max])
                 ]
                 print(f'{cc}\n\n\n')
-                tf_man.pub_static_tf(pos= cc , rot=[0,0,0,1], ref="head_rgbd_sensor_rgb_frame", point_name=prompt )   # Just Bounding Box Mask
+                tf_man.pub_static_tf(pos= cc , rot=[0,0,0,1], ref="'camera_depth_optical_frame'", point_name=prompt )   # Just Bounding Box Mask
                 ###########PCA######################
 
 

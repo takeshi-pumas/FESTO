@@ -145,7 +145,7 @@ class Find_human(smach.State):
         #if self.tries==3:head.move_head(*[-0.5, 0.0])#looking right        
         #rospy.sleep(1.0)
 
-
+        arm.set_named_target('face')
         
         humanpose=detect_human_to_tf(dist = self.dist,remove_bkg=True)  #make sure service is running (pointing detector server now hosts this service)
         if humanpose== False:
@@ -156,14 +156,15 @@ class Find_human(smach.State):
         point_msg = String("pointingBAG.gif")
         self.point_img_pub.publish(point_msg)
         rospy.sleep(1.2)
-        voice.talk("In three")
+        #voice.talk("In three")
         rospy.sleep(0.2)
-        voice.talk('Two')
+        #voice.talk('Two')
         rospy.sleep(0.2)
-        voice.talk('One')
+        #voice.talk('One')
         rospy.sleep(0.2)
         self.point_img_pub.publish(String())
-        rospy.sleep(0.1)
+        voice.talk('Keep Pointing')
+        rospy.sleep(5.1)
 
         req = Point_detectorRequest()
         req.dist = self.dist
@@ -245,7 +246,7 @@ class Scan_floor(smach.State):
 
         try:
             img,obj = get_luggage_tf()
-            save_image(img,name="segmentCarry")
+            #save_image(img,name="segmentCarry")
             if obj:
                 return 'succ'
             else:
@@ -320,14 +321,13 @@ class Pre_pickup(smach.State):
         voice.talk(f'Picking up luggage, please stay where you are')
         rospy.sleep(0.7)
         global target_object, pca_angle
-        head.set_named_target('neutral')
+
         rospy.sleep(0.5)
         clear_octo_client()
-        
+        rospy.sleep(3.5)
         res = omni_base.move_d_to(0.55,self.target)
-       
 
-        gripper.open()
+        #gripper.open()
 
         
 
