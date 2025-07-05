@@ -246,7 +246,7 @@ def detect_pointing(points_msg,dist = 6, remove_bkg= True):
     # left wrist
     ##############################
     try:
-            tt = tfBuffer.lookup_transform('map', 'camera_link', rospy.Time())
+            tt = tfBuffer.lookup_transform('map', 'camera_depth_optical_frame', rospy.Time())
                         
             trans,rot=read_tf(tt)
             #print ("############head",trans,rot)
