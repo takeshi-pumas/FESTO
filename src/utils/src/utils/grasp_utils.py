@@ -36,7 +36,7 @@ class ARM:
     def get_joint_values(self):
         states = rospy.wait_for_message('/xarm/joint_states', JointState)
         st = states.position
-        return [st[0], st[1],st[2], st[3], st[4], st[5]]
+        return [st[0], st[1],st[2], st[3], st[4]]
 
     def set_named_target(self, pose = 'navigation', duration = 5):
 
@@ -287,7 +287,7 @@ class BUMPER:
     
     def wait_for_bumper(self, timeout=10.0):
         start_time = rospy.Time.now().to_sec()
-        while not rospy.is_shutdown() and (rospy.Time.now().to_sec() - start_time) < timeout:
+        while not rospy.is_shutdown() and not self.is_bumper_pressed() and (rospy.Time.now().to_sec() - start_time) < timeout:
             rospy.sleep(0.1)
-            return self.is_bumper_pressed()
+        return self.is_bumper_pressed()
     

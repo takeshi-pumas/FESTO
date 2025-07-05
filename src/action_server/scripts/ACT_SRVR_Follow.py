@@ -3,22 +3,16 @@
 # ofc1227@tec.mx
 #from smach_utils2 import *
 from utils_follow import *
-
 from smach_ros import ActionServerWrapper
 from action_server.msg import FollowAction
 ##### Define state INITIAL #####
-
 from std_msgs.msg import Bool 
 from geometry_msgs.msg import Twist , PointStamped
-
-
-
 # --------------------------------------------------
 class Initial(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['succ', 'failed'])
         self.tries = 0
-
     def execute(self, userdata):
         set_pushed_false()
         rospy.loginfo('STATE : INITIAL')
@@ -31,7 +25,6 @@ class Initial(smach.State):
         #brazo.set_named_target('go')
         #print('brazo listo')
         rospy.sleep(0.8)
-
         return 'succ'
 
 # --------------------------------------------------
@@ -51,7 +44,7 @@ class Wait_push_hand(smach.State):
         print(f'Try {self.tries} of 4 attempts')
         if self.tries == 4:
             return 'tries'
-        talk('Gently... push my hand to begin')
+        voice.talk('Gently... push my hand to begin')
         succ = wait_for_push_hand(100)
 
         if succ:
@@ -133,7 +126,7 @@ class Find_legs(smach.State):
         except Exception:
             
             print ('No legs found')
-            talk( 'please stand in front of me')
+            voice.talk( 'please stand in front of me')
       
             
             msg_bool.data= False
@@ -177,7 +170,7 @@ class Follow_human(smach.State):
         self.last_pose= [0,0]
     def execute(self, userdata):
         if is_pushed():
-                    talk ('arrival confirmed, exiting action')
+                    voice.talk ('arrival confirmed, exiting action')
                     msg_bool=Bool()
                     msg_bool.data= False
                     enable_legs.publish(msg_bool)
@@ -188,14 +181,14 @@ class Follow_human(smach.State):
         self.tries+=1
         if self.tries == 1: 
             print('Found, ready to follow, please start walking')
-            talk('You can start to walk, Following')
+            voice.talk('You can start to walk, Following')
 
         try :
             punto=rospy.wait_for_message("/hri/leg_finder/leg_pose", PointStamped , timeout=2.0)
             pub_goal.publish(punto)
         except Exception:            
             print ('legs _lost')
-            talk( 'I lost you, please stand in front of me')
+            voice.talk( 'I lost you, please stand in front of me')
             return 'lost'
         x,y=punto.point.x,    punto.point.y   
         self.last_pose=[x,y]     
@@ -210,7 +203,7 @@ class Follow_human(smach.State):
                 # enable_legs.publish(msg_bool)
                 # enable_follow.publish(msg_bool)
                 print ('legs stopped... Did we arrive?')#,   np.var(self.last_legs,axis=0).mean()   )    
-                talk ('Push my hand when we have arrived, otherwise keep walking')#Push my hand to confirm ')
+                voice.talk ('Push my hand when we have arrived, otherwise keep walking')#Push my hand to confirm ')
                 
                 # print ('are we there yet? Push my hand to confirm ') 
                 # rospy.sleep(3.5)  

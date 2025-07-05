@@ -188,7 +188,7 @@ def detect_pointing(points_msg,dist = 6, remove_bkg= True):
     """
     pts= ros_numpy.numpify(points_msg)  
     #---
-    #human, _ =getTF(target_frame='human',ref_frame='head_rgbd_sensor_rgb_frame') 
+    #human, _ =getTF(target_frame='human',ref_frame='camera_depth_optical_frame') 
     
     #print(human)
     #distToTF = np.linalg.norm(human) if human[0] else 2
@@ -239,14 +239,14 @@ def detect_pointing(points_msg,dist = 6, remove_bkg= True):
         deb_imgb[np.where(probMap>=thresh)]= 255
     deb_img_rgb=cv2.merge((deb_imgr, deb_imgg, deb_imgb))
     res.debug_image.append(bridge.cv2_to_imgmsg(deb_img_rgb))
-    save_image(deb_img_rgb,name="debugImgDetectPointing_1")
+    #save_image(deb_img_rgb,name="debugImgDetectPointing_1")
     #right elbow       ####
     # right wrist      ####
     # left elbow
     # left wrist
     ##############################
     try:
-            tt = tfBuffer.lookup_transform('map', 'head_rgbd_sensor_link', rospy.Time())
+            tt = tfBuffer.lookup_transform('map', 'camera_link', rospy.Time())
                         
             trans,rot=read_tf(tt)
             #print ("############head",trans,rot)
@@ -268,7 +268,7 @@ def detect_pointing(points_msg,dist = 6, remove_bkg= True):
                                  (found_joints['right_wrist'][0],found_joints['right_wrist'][1],found_joints['right_wrist'][2])]
          , dtype=[('x', 'f4'), ('y', 'f4'), ('z', 'f4')])
         #pc_np_array = np.array([found_joints['right_elbow'], found_joints['right_wrist'], (0.0, 0.0, 0.0)], dtype=[('x', 'f4'), ('y', 'f4'), ('z', 'f4')])
-        points_msg=ros_numpy.msgify(PointCloud2,pc_np_array,rospy.Time.now(),'head_rgbd_sensor_rgb_frame')
+        points_msg=ros_numpy.msgify(PointCloud2,pc_np_array,rospy.Time.now(),'camera_depth_optical_frame')
         cloud_out = do_transform_cloud(points_msg, tt)
         np_corrected=ros_numpy.numpify(cloud_out)
         corrected=np_corrected.reshape(pc_np_array.shape)
@@ -312,7 +312,7 @@ def detect_pointing(points_msg,dist = 6, remove_bkg= True):
         pc_np_array = np.array([(found_joints['left_elbow'][0], found_joints['left_elbow'][1], found_joints['left_elbow'][2]),(found_joints['left_wrist'][0],found_joints['left_wrist'][1],found_joints['left_wrist'][2])]
          , dtype=[('x', 'f4'), ('y', 'f4'), ('z', 'f4')])
         #pc_np_array = np.array([found_joints['right_elbow'], found_joints['right_wrist'], (0.0, 0.0, 0.0)], dtype=[('x', 'f4'), ('y', 'f4'), ('z', 'f4')])
-        points_msg=ros_numpy.msgify(PointCloud2,pc_np_array,rospy.Time.now(),'head_rgbd_sensor_rgb_frame')
+        points_msg=ros_numpy.msgify(PointCloud2,pc_np_array,rospy.Time.now(),'camera_depth_optical_frame')
         cloud_out = do_transform_cloud(points_msg, tt)
         np_corrected=ros_numpy.numpify(cloud_out)
         corrected=np_corrected.reshape(pc_np_array.shape)
@@ -414,7 +414,7 @@ def detect_pointing2(points_msg,dist = 6,remove_bkg= True):
             if (pose_xyz == None).any():               # PENDIENTE DE TERMINAR Y PROBAR
                 raise Exception("Error al obtener datos de PointCloud")
             dists.append(np.linalg.norm(pose_xyz)) 
-            t=write_tf((pose_xyz[0],pose_xyz[1],pose_xyz[2]),(0,0,0,1),'person_'+str(i),parent_frame='head_rgbd_sensor_rgb_frame')
+            t=write_tf((pose_xyz[0],pose_xyz[1],pose_xyz[2]),(0,0,0,1),'person_'+str(i),parent_frame='camera_depth_optical_frame')
             b_st.sendTransform(t)
             rospy.sleep(0.3)
         elif pose[0,0] == 0 and pose[1,0] != 0:
@@ -425,7 +425,7 @@ def detect_pointing2(points_msg,dist = 6,remove_bkg= True):
             if (pose_xyz == None).any():               # PENDIENTE DE TERMINAR Y PROBAR
                 raise Exception("Error al obtener datos de PointCloud")
             dists.append(np.linalg.norm(pose_xyz))  
-            t=write_tf((pose_xyz[0],pose_xyz[1],pose_xyz[2]),(0,0,0,1),'person_'+str(i),parent_frame='head_rgbd_sensor_rgb_frame')
+            t=write_tf((pose_xyz[0],pose_xyz[1],pose_xyz[2]),(0,0,0,1),'person_'+str(i),parent_frame='camera_depth_optical_frame')
             b_st.sendTransform(t)
             rospy.sleep(0.3)
         else:
@@ -456,18 +456,18 @@ def detect_pointing2(points_msg,dist = 6,remove_bkg= True):
     if (codoD == None).any() or (manoD == None).any() or (codoI == None).any() or (manoI == None).any():   # PENDIENTE DE TERMINAR Y PROBAR
         raise Exception("Error al publicar TF (empty)")
     
-    t=write_tf((codoD[0],codoD[1],codoD[2]),(0,0,0,1),'codoD',parent_frame='head_rgbd_sensor_rgb_frame')
+    t=write_tf((codoD[0],codoD[1],codoD[2]),(0,0,0,1),'codoD',parent_frame='camera_depth_optical_frame')
     b_st.sendTransform(t)
     rospy.sleep(0.3)
-    t=write_tf((manoD[0],manoD[1],manoD[2]),(0,0,0,1),'manoD',parent_frame='head_rgbd_sensor_rgb_frame')
+    t=write_tf((manoD[0],manoD[1],manoD[2]),(0,0,0,1),'manoD',parent_frame='camera_depth_optical_frame')
     b_st.sendTransform(t)
     rospy.sleep(0.3)
     #if (codoI == None).any() or (manoI == None).any():               # PENDIENTE DE TERMINAR Y PROBAR
     #    raise Exception("Error al publicar TF (empty)")
-    t=write_tf((codoI[0],codoI[1],codoI[2]),(0,0,0,1),'codoI',parent_frame='head_rgbd_sensor_rgb_frame')
+    t=write_tf((codoI[0],codoI[1],codoI[2]),(0,0,0,1),'codoI',parent_frame='camera_depth_optical_frame')
     b_st.sendTransform(t)
     rospy.sleep(0.3)
-    t=write_tf((manoI[0],manoI[1],manoI[2]),(0,0,0,1),'manoI',parent_frame='head_rgbd_sensor_rgb_frame')
+    t=write_tf((manoI[0],manoI[1],manoI[2]),(0,0,0,1),'manoI',parent_frame='camera_depth_optical_frame')
     b_st.sendTransform(t)
     rospy.sleep(0.7)
 
@@ -666,7 +666,7 @@ def removeBackground(points_msg,distance = 2):
 #-----------------------------------------------------------------
 def save_image(img,name='',dirName=''):
     rospack = rospkg.RosPack()
-    file_path = rospack.get_path('images_repos')
+    file_path = rospack.get_path('config_files')
     
     num_data = len(glob(os.path.join(file_path,"src",dirName,"*"))) if dirName else len(glob(os.path.join(file_path,"src","*")))
     

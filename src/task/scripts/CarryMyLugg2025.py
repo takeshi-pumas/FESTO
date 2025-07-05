@@ -21,14 +21,17 @@ class Initial(smach.State):
         
         #READ YAML ROOMS XYS
         
-        global arm #,  hand_rgb
+        
         #hand_rgb = HAND_RGB()
 
-        arm = moveit_commander.MoveGroupCommander('arm')
-        head.set_named_target('neutral')
-        rospy.sleep(0.8)
-        arm.set_named_target('go')
-        arm.go()
+        #arm = move_group = moveit_commander.MoveGroupCommander("xarm6")
+        #arm.set_named_target('go')
+        #arm.go()
+        rospy.sleep(1.0)
+
+        arm.set_named_target('face')
+        result = voice.talk(sentence = "Festeshi ready  for help me carry", wait = True)
+        print('Festeshi ready  for help me carry')
         rospy.sleep(0.3)
 
         #gripper.open()
@@ -36,8 +39,6 @@ class Initial(smach.State):
 
         #gripper.close()
         #rospy.sleep(0.3)
-
-        
         return 'succ'
 
 #########################################################################################################
@@ -55,17 +56,41 @@ class Wait_push_hand(smach.State):
         print(f'Try {self.tries} of 4 attempts')
         if self.tries == 4:
             return 'tries'
-        talk('Gently... push my hand to begin')
+        voice.talk('Gently... push my hand to begin')
         
         
         succ = wait_for_push_hand(100) # NOT GAZEBABLE
         if succ:
-            head.set_joint_values([ 0.0, 0.0])# Looking ahead
-            talk('Starting Carry my luggage task')
-            talk("I gonna start follow you")
+            head.move_head(*[ 0.0, 0.0])# Looking ahead
+            voice.talk('Starting Carry my luggage task')
+            voice.talk("I gonna start follow you")
             return 'succ'
         else:
             return 'failed'
+        
+class Wait_bumper_pressed(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succ', 'failed', 'tries'])
+        self.tries = 0
+    
+    def execute(self, userdata):
+        rospy.loginfo("STATE: Wait for Bumper to be kicked")
+        self.tries += 1
+        print(f'Try {self.tries} of 4 attempts')
+        if self.tries == 4:
+            return 'tries'
+        voice.talk('Gently... kick my bumper to begin')
+        
+        
+        succ = bumper.wait_for_bumper(100) # NOT GAZEBABLE
+        if succ:
+            #head.set_joint_values([ 0.0, 0.0])# Looking ahead
+            voice.talk('Starting Carry my luggage task')
+            voice.talk("I gonna start follow you")
+            return 'succ'
+        else:
+            return 'failed'
+
 
 #########################################################################################################
 class Goto_living_room(smach.State):  
@@ -91,7 +116,7 @@ class Goto_living_room(smach.State):
         if res:
             return 'succ'
         else:
-            talk('Navigation Failed, retrying')
+            voice.talk('Navigation Failed, retrying')
             return 'failed'
 
 #########################################################################################################
@@ -113,26 +138,29 @@ class Find_human(smach.State):
             return 'tries'
         if self.tries==1:
             #omni_base.tiny_move( velX=-1,std_time=3)
-            talk('Scanning the room for humans')
-            talk('I believe we are too close, please take a step back')
-            head.set_joint_values([ 0.0, 0.2])# Looking ahead
-        if self.tries==2:head.set_joint_values([ 0.5, 0.2])#looking left
-        if self.tries==3:head.set_joint_values([-0.5, 0.2])#looking right        
-        rospy.sleep(1.0)
+            voice.talk('Scanning the room for humans')
+            voice.talk('I believe we are too close, please take a step back')
+            #head.move_head(*[ 0.5, 0.0])# Looking ahead
+        #if self.tries==2:head.move_head(*[ 0.5, 0.0])#looking left
+        #if self.tries==3:head.move_head(*[-0.5, 0.0])#looking right        
+        #rospy.sleep(1.0)
+
+
+        
         humanpose=detect_human_to_tf(dist = self.dist,remove_bkg=True)  #make sure service is running (pointing detector server now hosts this service)
         if humanpose== False:
             print ('no human ')
             return 'failed'
         
-        talk('Please start pointing at the bag.')
+        voice.talk('Please start pointing at the bag.')
         point_msg = String("pointingBAG.gif")
         self.point_img_pub.publish(point_msg)
         rospy.sleep(1.2)
-        talk("In three")
+        voice.talk("In three")
         rospy.sleep(0.2)
-        talk('Two')
+        voice.talk('Two')
         rospy.sleep(0.2)
-        talk('One')
+        voice.talk('One')
         rospy.sleep(0.2)
         self.point_img_pub.publish(String())
         rospy.sleep(0.1)
@@ -146,11 +174,10 @@ class Find_human(smach.State):
         print("RES",res.x_r,res.x_l,res.y_r,res.y_l)
 
         hum_pos,_=tf_man.getTF('human')
-        talk('Ok')
+        voice.talk('Ok')
         rospy.sleep(0.8)
         threshold_bag_to_human=3.0  
         userdata.second_pointing=False
-        ################################################################
         ########################################################
         if   res.x_l ==0 and res.x_r != 0:
             d_r=np.linalg.norm(hum_pos[:2]-np.asarray((res.x_r,res.y_r)))
@@ -186,7 +213,7 @@ class Find_human(smach.State):
                 return 'succ'
         ################################################################
         ########################################################
-        talk('I did not find a pointing arm, I will try again')
+        voice.talk('I did not find a pointing arm, I will try again')
         rospy.sleep(0.8)
         print ('no pointing ')
         self.tries = 0
@@ -205,11 +232,11 @@ class Scan_floor(smach.State):
         rospy.loginfo('STATE : Scan estimated pointing area')
         self.tries+=1 
         if self.tries==1:
-            head.to_tf('pointing_')
+            head.look_at_frame('pointing_')
             print("looking to TF")
                 
         if self.tries==2 and userdata.second_pointing:
-            head.to_tf('pointing_2')      
+            head.look_at_frame('pointing_2')      
         if self.tries==3:
             self.tries=0
             return 'tries'
@@ -223,7 +250,7 @@ class Scan_floor(smach.State):
                 return 'succ'
             else:
                 print(obj)
-                talk('no Objects in area....')
+                voice.talk('no Objects in area....')
                 return 'failed'
 
         except rospy.ServiceException as e:
@@ -246,7 +273,7 @@ class Scan_floor_deprecating(smach.State):
         #if self.tries==2:head.to_tf('pointing_left')     
         if self.tries==3:
             self.tries=0
-            talk("Let's do it again")
+            voice.talk("Let's do it again")
             return 'tries'
         
         
@@ -275,7 +302,7 @@ class Scan_floor_deprecating(smach.State):
         print (theta,'\n\n\n\n')
 
         if len(res.poses.data)==0:
-            talk('no Objects in area....')
+            voice.talk('no Objects in area....')
             return 'failed'
         else:
             succ=seg_res_tf_pointing(res)   # la funcion seg res tf pointing traudce el response del servivio a una tf estatica. con el nombre pointing_right left
@@ -290,7 +317,7 @@ class Pre_pickup(smach.State):
         
     def execute(self, userdata):
         rospy.loginfo(f'State : Pre PICKUP  {self.target} ')
-        talk(f'Picking up luggage, please stay where you are')
+        voice.talk(f'Picking up luggage, please stay where you are')
         rospy.sleep(0.7)
         global target_object, pca_angle
         head.set_named_target('neutral')
@@ -488,7 +515,7 @@ class Pickup_two(smach.State):
         #succ=brazo.check_grasp()
         if succ:
             return 'succ'
-        talk("I think I missed the object, I will retry")
+        voice.talk("I think I missed the object, I will retry")
         gripper.open()
         return 'failed'
         
@@ -502,14 +529,14 @@ class Give_to_me(smach.State):
         floor_pose=[0.25,-2.43,0.002,0.863,0.002,0.0]
         userdata.floor_pose=floor_pose
         brazo.set_named_target("neutral")
-        talk("I failed, please give the luggage to me")
+        voice.talk("I failed, please give the luggage to me")
         gripper.open()
         rospy.sleep(2.0)
-        talk("In three...")
+        voice.talk("In three...")
         rospy.sleep(0.4)
-        talk("Two...")
+        voice.talk("Two...")
         rospy.sleep(0.4)
-        talk("One...")
+        voice.talk("One...")
         rospy.sleep(0.4)
         gripper.close(0.05)
         return 'succ'
@@ -524,7 +551,7 @@ class Post_Pickup(smach.State):
         rospy.loginfo('State :  POST_PICKUP ')
         clear_octo_client()
         self.tries += 1
-        #talk('Rotating to previous human location found')
+        #voice.talk('Rotating to previous human location found')
         rospy.sleep(0.7)
         
         #res = new_move_D_to(tf_name='human',d_x=15)
@@ -534,7 +561,7 @@ class Post_Pickup(smach.State):
             return 'succ'
 
         else:
-            talk('Failed, retrying')
+            voice.talk('Failed, retrying')
             rospy.sleep(0.8)
             return 'failed'
 
@@ -552,26 +579,26 @@ class Deliver_Luggage(smach.State):
             #deliver_position =  [0.01, -1.61, 0.0    , -1.57, 0.00, 0.0]
 
             rospy.sleep(1)
-            #talk("Please take the luggage")
-            talk("placing bag")
+            #voice.talk("Please take the luggage")
+            voice.talk("placing bag")
             #arm.set_joint_value_target(deliver_position)
             arm.set_joint_value_target(userdata.floor_pose)
             print (f' pose floor {userdata.floor_pose}\n \n')
             arm.go()
             rospy.sleep(3.0)
-            # talk("placing bag")
+            # voice.talk("placing bag")
             # rospy.sleep(0.7)
-            # talk("Two")
+            # voice.talk("Two")
             # rospy.sleep(0.7)
-            # talk("One")
+            # voice.talk("One")
             # rospy.sleep(0.7)
             gripper.open()
-            #talk('Push my hand when you have taken the bag')
+            #voice.talk('Push my hand when you have taken the bag')
             #brazo.set_named_target('go') 
             arm.set_named_target('go') 
             arm.go()
             
-            talk("Task completed")
+            voice.talk("Task completed")
             return 'succ'
         except rospy.ServiceException as e:
             print(f"Service call failed: {e}")
@@ -579,9 +606,9 @@ class Deliver_Luggage(smach.State):
         #succ = wait_for_push_hand(100) # NOT GAZEBABLE
         #if succ:return 'succ'
         # gripper.open()
-        # talk("Thank you")
+        # voice.talk("Thank you")
         # rospy.sleep(1)
-        # talk("Closing Gripper. Please be sure your hand is out of the way")
+        # voice.talk("Closing Gripper. Please be sure your hand is out of the way")
         # rospy.sleep(2.5)
         # gripper.close(0.1)
         # return 'succ'
@@ -593,18 +620,18 @@ class Return_Living_Room(smach.State):
         self.tries = 0
     def execute(self, userdata):
         self.tries += 1
-        talk("I will return to start location")
+        voice.talk("I will return to start location")
         res = omni_base.move_base(known_location='start_location', time_out=200)
         print(res)
         if self.tries==3:
             self.tries=0
-            talk("Sorry, I can't arrive to start location, I will release the bag here")
+            voice.talk("Sorry, I can't arrive to start location, I will release the bag here")
             return 'tries'
         if res:
-            #talk("Task completed")
+            #voice.talk("Task completed")
             return 'succ'
         else:
-            talk('Navigation Failed, retrying')
+            voice.talk('Navigation Failed, retrying')
             return 'failed'
 
 #########################################################################################################
@@ -630,11 +657,11 @@ if __name__ == '__main__':
     with sm:
         # State machine STICKLER
         smach.StateMachine.add("INITIAL",           Initial(),              transitions={'failed': 'INITIAL',           
-                                                                                         'succ': 'WAIT_PUSH_HAND',   
-                                                                                         #'succ': 'SCAN_FLOOR',   
+                                                                                         'succ': 'WAIT_BUMPER',   
                                                                                          'tries': 'END'})
-        smach.StateMachine.add("WAIT_PUSH_HAND",    Wait_push_hand(),       transitions={'failed': 'WAIT_PUSH_HAND',    
-                                                                                         'succ': 'GOTO_HUMAN',       
+        smach.StateMachine.add("WAIT_BUMPER",    Wait_bumper_pressed(),       transitions={'failed': 'WAIT_BUMPER',    
+                                                                                         #'succ': 'GOTO_HUMAN',       
+                                                                                         'succ':'FIND_HUMAN',
                                                                                          'tries': 'END'})
         smach.StateMachine.add("GOTO_LIVING_ROOM",  Goto_living_room(),     transitions={'failed': 'GOTO_LIVING_ROOM',        
                                                                                          'succ': 'FIND_HUMAN',   

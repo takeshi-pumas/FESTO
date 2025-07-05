@@ -10,8 +10,5 @@
   <node pkg="segmentation"  name="segment_region" type="segment_region_server.py"/>
   <!--node pkg="head" name="mic_node" type="mic_node"/-->
   <node name="vosk_keywords" pkg="ros_whisper_vosk" type="vosk_node.py" respawn="true" output="screen" />
-  
 </launch>
 
- 
-    

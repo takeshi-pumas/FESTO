@@ -37,10 +37,13 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from utils import grasp_utils
 from utils.misc_utils import *
 from utils.nav_utils import *
+from utils import grasp_utils, misc_utils
+
+
 from geometry_msgs.msg import WrenchStamped
 global listener, broadcaster, tfBuffer, tf_static_broadcaster, scene, rgbd, head,train_new_face, wrist, human_detect_server, line_detector, clothes_color , head_mvit
 global clear_octo_client, goal,navclient,segmentation_server  , tf_man , omni_base, brazo, speech_recog_server, bridge, map_msg, pix_per_m, analyze_face , arm , set_grammar
-global recognize_action , classify_client,pointing_detect_server  , hand_cam , pub_goal
+global recognize_action , classify_client,pointing_detect_server  , hand_cam , pub_goal, voice
 rospy.init_node('follow_action_server', anonymous=True)
 #arm =  moveit_commander.MoveGroupCommander('arm')
 #head_mvit = moveit_commander.MoveGroupCommander('head')
@@ -95,7 +98,10 @@ tf_man = TF_MANAGER()
 #head = GAZE()
 brazo = grasp_utils.ARM(joint_names = ["joint1", "joint2", "joint3", "joint4", "joint5", "joint6"], 
                       arm_controller_action_client = "/xarm/xarm6_traj_controller/follow_joint_trajectory")
-line_detector = LineDetector()
+head= grasp_utils.GAZE(arm=brazo)
+voice = misc_utils.Talker()
+
+#line_detector = LineDetector()
 # arm =  moveit_commander.MoveGroupCommander('arm')
 
 

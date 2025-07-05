@@ -11,6 +11,8 @@ arm = grasp_utils.ARM(joint_names = ["joint1", "joint2", "joint3", "joint4", "jo
 
 head = grasp_utils.GAZE(arm = arm)
 
+bumper = grasp_utils.BUMPER()
+
 rospy.sleep(0.1)
 
 result = voice.talk(sentence = "hello, my name is festino", wait = True)
@@ -38,6 +40,12 @@ poses = [[1.01, -0.03, -2.98, 0, 1.49],[1.01, -0.31, 0.03, 0, -0.51], [1.01, 0.2
     #rospy.sleep(1.0)
 
 #arm.set_named_target("head")
-head.look_at(x = 2.0, y = -1.5, z = 0.0, frame = "base_link")
+#head.look_at(x = 2.0, y = -1.5, z = 0.0, frame = "base_link")
 #head.move_head(pan = 0, tilt= 0)
-rospy.spin()
+#rospy.spin()
+
+response = bumper.wait_for_bumper()
+if response:
+    voice.talk("Bumper pressed")
+else:
+    voice.talk("Bumper not pressed")

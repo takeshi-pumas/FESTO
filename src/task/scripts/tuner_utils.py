@@ -569,7 +569,7 @@ def detect_object_yolo(object_name,res):
 #-----------------------------------------------------------------
 def save_image(img,name='',dirName=''):
     rospack = rospkg.RosPack()
-    file_path = rospack.get_path('images_repos')
+    file_path = rospack.get_path('config_files')
     
     num_data = len(glob(path.join(file_path,"src",dirName,"*"))) if dirName else len(glob(path.join(file_path,"src","*")))
     

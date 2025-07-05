@@ -28,10 +28,10 @@ from std_srvs.srv import Trigger, TriggerResponse
 from sensor_msgs.msg import Image , LaserScan  , PointCloud2
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 from object_classification.srv import *
-from segmentation.srv import *
+from segmentation.srv import *  
 from human_detector.srv import Human_detector  ,Human_detectorRequest 
 from human_detector.srv import Point_detector ,Point_detectorRequest
-from hmm_act_recog.srv import *
+#from hmm_act_recog.srv import *
 from ros_whisper_vosk.srv import GetSpeech
 from object_classification.srv import *
 from face_recog.msg import *
@@ -45,21 +45,19 @@ from cv_bridge import CvBridge, CvBridgeError
 from nav_msgs.msg import OccupancyGrid
 from hri_msgs.msg import RecognizedSpeech
 from rospy.exceptions import ROSException
-from vision_msgs.srv import *
 from scipy.spatial import distance
 from sklearn.decomposition import PCA
 #from act_recog.srv import Recognize,RecognizeResponse,RecognizeRequest
 from ros_whisper_vosk.srv import SetGrammarVosk
 from action_server.msg import FollowActionGoal ,  FollowAction , IdentifyPersonAction , IdentifyPersonActionGoal
-from utils.grasp_utils import *
-from utils.misc_utils import *
-from utils.nav_utils import *
+
+from utils import grasp_utils, misc_utils, nav_utils, receptionist_knowledge
 
 #from utils.know_utils import *
 
 global listener, broadcaster, tfBuffer, tf_static_broadcaster, scene, rgbd, head,train_new_face, wrist, human_detect_server, line_detector, clothes_color , head_mvit
 global clear_octo_client, goal,navclient,segmentation_server  , tf_man , omni_base, brazo, speech_recog_server, bridge, map_msg, pix_per_m, analyze_face , arm , set_grammar
-global recognize_action , classify_client,pointing_detect_server ,placing_finder_server,action_planner_server, classify_client_dino ,Pca, hand_rgb
+global recognize_action , classify_client,pointing_detect_server ,placing_finder_server,action_planner_server, classify_client_dino ,Pca, voice
 rospy.init_node('smach', anonymous=True)
 logger = logging.getLogger('rosout')
 logger.setLevel(logging.ERROR)
@@ -92,7 +90,6 @@ classify_client = rospy.ServiceProxy('/classify', Classify)             #YOLO OB
 
 classify_client_dino = rospy.ServiceProxy('grounding_dino_detect', Classify_dino)
 classify_clnt_stickler = rospy.ServiceProxy('/classifystick', Classify)
-recognize_action = rospy.ServiceProxy('recognize_act',RecognizeOP)
 Pca=PCA()
 
 ####################################################################
@@ -104,20 +101,19 @@ Pca=PCA()
 #contoured=cv2.drawContours(img_map.astype('uint8'), contours, 1, (255,255,255), 1)
 
 ####################################################################3
-
-
-rgbd= RGBD()
+rgbd= misc_utils.RGBD() 
 bridge = CvBridge()
 #segmentation_server = rospy.ServiceProxy('/segment_2_tf', Trigger) 
-tf_man = TF_MANAGER()
-gripper = GRIPPER()
-omni_base=OMNIBASE()        #  NAV ACTION
-#omni_base=NAVIGATION()     #  nav UTILS
-wrist= WRIST_SENSOR()
-head = GAZE()
-brazo = ARM()
-hand_rgb = HAND_RGB()
-line_detector = LineDetector()
+tf_man = misc_utils.TF_MANAGER()
+omni_base = nav_utils.NAVIGATION()
+arm = grasp_utils.ARM(joint_names = ["joint1", "joint2", "joint3", "joint4", "joint5", "joint6"], 
+                      arm_controller_action_client = "/xarm/xarm6_traj_controller/follow_joint_trajectory")
+head = grasp_utils.GAZE(arm = arm)
+voice = misc_utils.Talker()
+bumper  = grasp_utils.BUMPER()
+
+#line_detector = LineDetector()
+
 # arm =  moveit_commander.MoveGroupCommander('arm')
 
 #------------------------------------------------------
@@ -558,7 +554,7 @@ def detect_human_to_tf(dist = 6,remove_bkg = True):
         #print ("ASARRAY",np.asarray((humanpose.x,humanpose.y,humanpose.z)))
         return False
     else:
-        tf_man.pub_static_tf(np.asarray((humanpose.x,humanpose.y,humanpose.z)),point_name='human', ref='head_rgbd_sensor_link')
+        tf_man.pub_static_tf(np.asarray((humanpose.x,humanpose.y,humanpose.z)),point_name='human', ref='camera_link')
         rospy.sleep(0.5)
         succ=tf_man.change_ref_frame_tf('human')
         rospy.sleep(0.5)
