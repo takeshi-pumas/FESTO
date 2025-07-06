@@ -69,15 +69,15 @@ recognize_face = rospy.ServiceProxy('recognize_face', RecognizeFace)            
 train_new_face = rospy.ServiceProxy('new_face', RecognizeFace)                          #FACE RECOG
 analyze_face = rospy.ServiceProxy('analyze_face', RecognizeFace)    ###DEEP FACE ONLY
 classify_client = rospy.ServiceProxy('/classify', Classify)
-global hand_pushed
-hand_pushed = False
-def hand_callback(msg):
-    global hand_pushed
-    torque = msg.wrench.torque.y
-    if np.abs(torque)>1.0:
-        hand_pushed = True
+# global hand_pushed
+# hand_pushed = False
+# def hand_callback(msg):
+#     global hand_pushed
+#     torque = msg.wrench.torque.y
+#     if np.abs(torque)>1.0:
+#         hand_pushed = True
 
-hand_suscriber = rospy.Subscriber("/hsrb/wrist_wrench/compensated", WrenchStamped, hand_callback)
+# hand_suscriber = rospy.Subscriber("/hsrb/wrist_wrench/compensated", WrenchStamped, hand_callback)
 
 enable_mic_pub = rospy.Publisher('/talk_now', Bool, queue_size=10)
 #map_msg= rospy.wait_for_message('/augmented_map', OccupancyGrid , 20)####WAIT for nav pumas map .. 

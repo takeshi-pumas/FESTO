@@ -660,8 +660,8 @@ if __name__ == '__main__':
                                                                                          'succ': 'WAIT_BUMPER',   
                                                                                          'tries': 'END'})
         smach.StateMachine.add("WAIT_BUMPER",    Wait_bumper_pressed(),       transitions={'failed': 'WAIT_BUMPER',    
-                                                                                         #'succ': 'GOTO_HUMAN',       
-                                                                                         'succ':'FIND_HUMAN',
+                                                                                         'succ': 'GOTO_HUMAN',       
+                                                                                         #'succ':'FIND_HUMAN',
                                                                                          'tries': 'END'})
         smach.StateMachine.add("GOTO_LIVING_ROOM",  Goto_living_room(),     transitions={'failed': 'GOTO_LIVING_ROOM',        
                                                                                          'succ': 'FIND_HUMAN',   

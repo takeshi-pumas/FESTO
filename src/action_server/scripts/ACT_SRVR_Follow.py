@@ -203,26 +203,26 @@ class Follow_human(smach.State):
                 # enable_legs.publish(msg_bool)
                 # enable_follow.publish(msg_bool)
                 print ('legs stopped... Did we arrive?')#,   np.var(self.last_legs,axis=0).mean()   )    
-                voice.talk ('Push my hand when we have arrived, otherwise keep walking')#Push my hand to confirm ')
+                voice.talk ('Please, say yes if we have arrived, otherwise keep walking')#Push my hand to confirm ')
                 
                 # print ('are we there yet? Push my hand to confirm ') 
                 # rospy.sleep(3.5)  
-                # speech = get_keywords_speech(7.0)
-                # speech = speech.split(' ')
-                # confirmation_list=['yup','yes','jack','juice', 'takeshi yes','yeah', 'Jess','Jeff' ]
-                # confirm = any(word in confirmation_list for word in speech)
+                speech = get_keywords_speech(7.0)
+                speech = speech.split(' ')
+                confirmation_list=['yup','yes','jack','juice', 'takeshi yes','yeah', 'Jess','Jeff' ]
+                confirm = any(word in confirmation_list for word in speech)
                 # confirm_hand =wait_for_push_hand(2.0)
-                # print (speech,"################################################# \n \n",confirm, confirm_hand)      
+                #print (speech,"################################################# \n \n",confirm, confirm_hand)      
 
-                # if confirm or confirm_hand:
+                if confirm:
                 # if is_pushed():
-                #     talk ('arrival confirmed, exiting action')
-                #     msg_bool=Bool()
-                #     msg_bool.data= False
-                #     enable_legs.publish(msg_bool)
-                #     enable_follow.publish(msg_bool)
-                #     print ('We are athere')                     
-                #     return 'arrived' 
+                    voice.talk ('arrival confirmed, exiting action')
+                    msg_bool=Bool()
+                    msg_bool.data= False
+                    enable_legs.publish(msg_bool)
+                    enable_follow.publish(msg_bool)
+                    print ('We are athere')                     
+                    return 'arrived' 
 
                 self.last_legs=[]
                 #talk ('ok, keep following')
