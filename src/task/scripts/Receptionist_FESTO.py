@@ -409,7 +409,7 @@ class Find_drink(smach.State):
         # arm.go(av)
         # brazo.set_joint_values([0.160 , 0.0, -1.57,-1.57, 0.0])
         # head.set_joint_values([0.0, -0.5])
-        rospy.sleep(3)
+        rospy.sleep(0.5)
 
         res,position = get_favorite_drink_location(favorite_drink)
         if res:
@@ -479,7 +479,7 @@ class Find_sitting_place(smach.State):
         print (place)
         head.look_at_frame(frame_id = place)
         #voice.talk('I will check if this place is empty')
-        rospy.sleep(1.5)            
+        rospy.sleep(2)            
         res , _ = wait_for_face()  # seconds       
         print (res)
 
@@ -491,6 +491,7 @@ class Find_sitting_place(smach.State):
                 voice.talk(f'{name}, I found you a free place, sit here please.')
                 rospy.sleep(3)
                 head.look_at_frame(frame_id = place)
+                rospy.sleep(2)
                 self.sat=True
                 if self.introduced:    #SHOULD ONLY BE TRUE IF NEW GGUEST HAS BEEN INTRODUCED TO EVERY ONE 
                     self.sat=False
