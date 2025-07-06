@@ -19,7 +19,11 @@ class ARM:
                          joint_values : list = [0.0, 0.0, -1.6, -1.6, 0.0], 
                          duration = 5, 
                          tolerance = 0.05):
-        current_values = self.get_joint_values()
+        try:
+            current_values = self.get_joint_values()
+        except RuntimeError:
+            rospy.logerr("Cannot get current joint values. Aborting motion command.")
+            return False
         
         diff = [abs(c - t) for c, t in zip(current_values, joint_values)]
         if all(d < tolerance for d in diff):
@@ -44,9 +48,18 @@ class ARM:
         return self._cli.wait_for_result()
     
     def get_joint_values(self):
-        states = rospy.wait_for_message('/xarm/joint_states', JointState)
-        st = states.position
-        return [st[0], st[1],st[2], st[3], st[4]]
+        for attempt in range(max_attempts):
+            try:
+                states = rospy.wait_for_message('/xarm/joint_states', JointState, timeout=2.0)
+                if states.position and len(states.position) >= 5:
+                    return list(states.position[:5])
+            except rospy.ROSException:
+                rospy.logwarn(f"[xArm] Attempt {attempt+1}/{max_attempts}: joint_states not yet available.")
+            rospy.sleep(wait_secs)
+        
+        rospy.logerr("[xArm] joint_states not received after several attempts.")
+        raise RuntimeError("joint_states unavailable")
+
 
     def set_named_target(self, pose = 'navigation', duration = 5):
 

@@ -334,87 +334,6 @@ class Pre_pickup(smach.State):
         if res:return 'succ'
         return 'failed'
         
-
-        #return 0
-        """
-                                
-                                
-                                succ= arm.go(pickup_pose)
-                                rospy.sleep(1.0)
-                                
-                        
-                                if succ:
-                                    
-                                    succ = False
-                                    
-                                    while not succ:
-                                        #trans,rot = tf_man.getTF(target_frame='static003_cracker_box', ref_frame='hand_palm_link')
-                                        trans,_ = tf_man.getTF(target_frame=target_object, ref_frame='hand_palm_link')
-                                        _,rot = tf_man.getTF(target_frame='base_link', ref_frame='map')
-                        
-                                        if type(trans) is bool:
-                                            trans,_ = tf_man.getTF(target_frame='static029_plate', ref_frame='hand_palm_link')
-                                            _,rot = tf_man.getTF(target_frame='base_link', ref_frame='map')
-                                            print('no tf')
-                                            return 'failed'
-                                        if type(trans) is not bool:
-                                            eX, eY, eZ = trans
-                                            eY+=-0.05
-                                            eT= tf.transformations.euler_from_quaternion(rot)[2] - 0.5*np.pi    #(known loc pickup change to line finder?)   NO! THERE ARE  ROUND TABLES !
-                                            rospy.loginfo("Distance to goal: {:.2f}, {:.2f}, angle {:.2f}, target obj frame {}".format(eX, eY , eT,target_object))
-                                            if abs(eX) < 0.03:
-                                                eX = 0
-                                            if abs(eY) < 0.01:
-                                                eY = 0
-                                            if abs(eT   ) < 0.05:
-                                                eT = 0
-                                            succ =  eX == 0 and eY == 0 and eT==0
-                                                # grasp_base.tiny_move(velY=-0.4*trans[1], std_time=0.2, MAX_VEL=0.3)
-                                            omni_base.tiny_move(velX=0.13*eX, velY=-0.4*eY, velT=-0.3*eT, std_time=0.2, MAX_VEL=0.3) #Pending test
-                                    
-                                    print(tf_man.getTF(ref_frame=target_object,target_frame='base_link'), 'tf obj base######################################')
-                        
-                                    
-                                    return 'succ'"""
-            
-
-#########################################################################################################
-"""class Pickup(smach.State):
-    def __init__(self):
-        smach.State.__init__(
-            self, outcomes=['succ', 'failed', 'tries'])
-        self.tries = 0
-        self.target='object_0'
-    def execute(self, userdata):
-        rospy.loginfo('State :  PICKUP ')
-        clear_octo_client()
-        self.tries += 1
-        target_object=self.target
-
-        if self.tries >= 4:
-            self.tries = 0
-            return'tries'
-        
-        clear_octo_client()
-
-        pickup_pose=[0.0,-1.4,0.0,-1.74, 0.0, 0.0]
-        succ= arm.go(pickup_pose)
-        
-        succ = False
-        
-        brazo.move_hand_to_target(target_frame= target_object)
-        gripper.close()
-
-        arm.set_named_target('go')
-        arm.go()
-        res  = omni_base.move_base(known_location='living_room')
-        succ=brazo.check_grasp()
-        if res:
-            return 'succ'
-        else:
-            return 'failed'
-"""
-
 #########################################################################################################
 class Pickup_two(smach.State):
     def __init__(self):
@@ -477,47 +396,44 @@ class Pickup_two(smach.State):
         rospy.sleep(2.0)
         clear_octo_client()
         rospy.sleep(1.0)
-        print("MOVING ARM")    
-        #_,_,theta=ransac_laser()
-        #rint (theta)
-        _,quat_r=tf_man.getTF('base_link')
-        print(f'Quat base',np.rad2deg(tf.transformations.euler_from_quaternion(quat_r)[2]))
-        ang_base=tf.transformations.euler_from_quaternion(quat_r)[2]
-        pose,quat_b=tf_man.getTF('bagpca')
-        print(pose)
-        print(f'Quat bag' ,np.rad2deg(tf.transformations.euler_from_quaternion(quat_b)[2]))
-        ang_bag=tf.transformations.euler_from_quaternion(quat_b)[2]
+        print("MOVING ARM") 
+        return 'tries'   
         
-
-        #wrist_adjust =    max(theta-(0.5*np.pi), -1.57)
-        wrist_adjust =    min(max((ang_base-ang_bag), -1.57) , 1.57)
-        print ('theta, remvoe',wrist )
-        #floor_pose=[0.05,-1.6,0.0,-1.41,0.0,0.0]
-
-        floor_pose=[pose[2]*2.5,-1.6,0.0,-1.41,wrist_adjust,0.0]
-        arm.set_joint_value_target(floor_pose)
-        arm.go()
-        floor_pose=[max(pose[2]-0.05,0.1),-1.6,0.0,-1.41,wrist_adjust,0.0]
-        userdata.floor_pose=floor_pose
-        arm.set_joint_value_target(floor_pose)
-        arm.go()
-        rospy.sleep(1.0)
-        print("closing hand")
-        gripper.close(0.04)
-        brazo.set_named_target('go')         
-        head.to_tf('bagpca')
-        rospy.sleep(3.0)
-        succ = check_carry_bag()
-        hand_img = cv2.cvtColor(hand_rgb.get_image(), cv2.COLOR_BGR2RGB)
-        succ = check_bag_hand_camera(hand_img)
-        if not succ: 
-            succ = check_carry_bag()
-        #succ=brazo.check_grasp()
-        if succ:
-            return 'succ'
-        voice.talk("I think I missed the object, I will retry")
-        gripper.open()
-        return 'failed'
+        #_,quat_r=tf_man.getTF('base_link')
+        #print(f'Quat base',np.rad2deg(tf.transformations.euler_from_quaternion(quat_r)[2]))
+        #ang_base=tf.transformations.euler_from_quaternion(quat_r)[2]
+        #pose,quat_b=tf_man.getTF('bagpca')
+        #print(pose)
+        #print(f'Quat bag' ,np.rad2deg(tf.transformations.euler_from_quaternion(quat_b)[2]))
+        #ang_bag=tf.transformations.euler_from_quaternion(quat_b)[2]
+        ##wrist_adjust =    max(theta-(0.5*np.pi), -1.57)
+        #wrist_adjust =    min(max((ang_base-ang_bag), -1.57) , 1.57)
+        #print ('theta, remvoe',wrist )
+        ##floor_pose=[0.05,-1.6,0.0,-1.41,0.0,0.0]
+        #floor_pose=[pose[2]*2.5,-1.6,0.0,-1.41,wrist_adjust,0.0]
+        #arm.set_joint_value_target(floor_pose)
+        #arm.go()
+        #floor_pose=[max(pose[2]-0.05,0.1),-1.6,0.0,-1.41,wrist_adjust,0.0]
+        #userdata.floor_pose=floor_pose
+        #arm.set_joint_value_target(floor_pose)
+        #arm.go()
+        #rospy.sleep(1.0)
+        #print("closing hand")
+        #gripper.close(0.04)
+        #brazo.set_named_target('go')         
+        #head.to_tf('bagpca')
+        #rospy.sleep(3.0)
+        #succ = check_carry_bag()
+        #hand_img = cv2.cvtColor(hand_rgb.get_image(), cv2.COLOR_BGR2RGB)
+        #succ = check_bag_hand_camera(hand_img)
+        #if not succ: 
+        #    succ = check_carry_bag()
+        ##succ=brazo.check_grasp()
+        #if succ:
+        #    return 'succ'
+        #voice.talk("I think I missed the object, I will retry")
+        #gripper.open()
+        #return 'failed'
         
 #########################################################################################################
 class Give_to_me(smach.State):
@@ -526,10 +442,16 @@ class Give_to_me(smach.State):
         self.tries = 0
     def execute(self, userdata):
         rospy.loginfo("State: Give to me")
+        arm.set_named_target("pointing")
+        voice.talk("Since I don't have a gripper yet, could you place the bag here?")
+        rospy.sleep(5.0)
+        
+
+        
         floor_pose=[0.25,-2.43,0.002,0.863,0.002,0.0]
         userdata.floor_pose=floor_pose
-        brazo.set_named_target("neutral")
-        voice.talk("I failed, please give the luggage to me")
+        #brazo.set_named_target("neutral")
+        #voice.talk(" please give the luggage to me")
         gripper.open()
         rospy.sleep(2.0)
         voice.talk("In three...")

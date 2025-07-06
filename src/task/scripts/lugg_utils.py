@@ -880,7 +880,7 @@ def get_luggage_tf():
                     np.nanmean(points['z'][y_min:y_max, x_min:x_max])
                 ]
                 print(f'{cc}\n\n\n')
-                tf_man.pub_static_tf(pos= cc , rot=[0,0,0,1], ref="'camera_depth_optical_frame'", point_name=prompt )   # Just Bounding Box Mask
+                tf_man.pub_static_tf(pos= cc , rot=[0,0,0,1], ref='camera_depth_optical_frame', point_name=prompt )   # Just Bounding Box Mask
                 ###########PCA######################
 
 
