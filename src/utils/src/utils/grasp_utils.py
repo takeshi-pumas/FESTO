@@ -48,6 +48,8 @@ class ARM:
         return self._cli.wait_for_result()
     
     def get_joint_values(self):
+        max_attempts= 5
+        wait_secs= 3.0
         for attempt in range(max_attempts):
             try:
                 states = rospy.wait_for_message('/xarm/joint_states', JointState, timeout=2.0)
@@ -69,7 +71,8 @@ class ARM:
             'pointing': [1.01, 0.23, -1.22, 0, -0.53],
             'table': [1.01, -0.65, -0.64, 0.0, 0.1],
             'head': [1.01, -0.965, -0.489, 0.0, -0.131],
-            'neutral': [0.0, 0.0, 0.0, -1.6, -1.6,]
+            'neutral': [0.0, 0.0, 0.0, -1.6, -1.6,],
+            'carry_pointing':[1.01, -0.31, 0.0, 1.76, 0.0]
         }
         joint_values = poses.get(pose, poses['neutral'])
         self.set_joint_values(joint_values, duration=duration)

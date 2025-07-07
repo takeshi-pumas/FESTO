@@ -18,7 +18,7 @@ rospy.sleep(0.1)
 result = voice.talk(sentence = "hello, my name is festino", wait = True)
 
 rospy.sleep(0.1)
-poses = [[1.01, -0.03, -2.98, 0, 1.49],[1.01, -0.31, 0.03, 0, -0.51], [1.01, 0.23, -1.22, 0, -0.53], [1.01, -0.65, -0.64, 0.0, 0.1]]
+poses = [[1.01, -0.03, -2.98, 0, 1.49],[1.01, -0.03, -2.98, 0, ],[1.01, -0.31, 0.03, 0, -0.51], [1.01, 0.23, -1.22, 0, -0.53], [1.01, -0.65, -0.64, 0.0, 0.1]]
 
 # 58, -2, -171, 0, 85.2, 0 #face
 # 1.01, -0.03, -2.98, 0, 1.49
@@ -34,10 +34,10 @@ poses = [[1.01, -0.03, -2.98, 0, 1.49],[1.01, -0.31, 0.03, 0, -0.51], [1.01, 0.2
 
 #arm.set_joint_values(joint_values = poses[1])
 
-#for pose in poses:
-#    print(pose)
-    #arm.set_joint_values(joint_values = pose)
-    #rospy.sleep(1.0)
+for pose in poses:
+   print(pose)
+   arm.set_joint_values(joint_values = pose)
+   rospy.sleep(1.0)
 
 #arm.set_named_target("head")
 #head.look_at(x = 2.0, y = -1.5, z = 0.0, frame = "base_link")

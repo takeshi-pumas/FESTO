@@ -549,12 +549,13 @@ def detect_human_to_tf(dist = 6,remove_bkg = True):
     req.dist = dist
     req.removeBKG = remove_bkg
     humanpose=human_detect_server(req)
-    #print ("humanpose",humanpose)
+    print ("humanpose funcion",humanpose)
+    
     if (np.asarray((humanpose.x,humanpose.y,humanpose.z)).all()== np.zeros(3).all()):
-        #print ("ASARRAY",np.asarray((humanpose.x,humanpose.y,humanpose.z)))
+        print ("ASARRAY",np.asarray((humanpose.x,humanpose.y,humanpose.z)))
         return False
     else:
-        tf_man.pub_static_tf(np.asarray((humanpose.x,humanpose.y,humanpose.z)),point_name='human', ref='camera_link')
+        tf_man.pub_static_tf(np.asarray((humanpose.x,humanpose.y,humanpose.z)),point_name='human', ref='camera_depth_optical_frame')
         rospy.sleep(0.5)
         succ=tf_man.change_ref_frame_tf('human')
         rospy.sleep(0.5)

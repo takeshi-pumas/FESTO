@@ -136,18 +136,19 @@ class Find_human(smach.State):
         if self.tries >= 5:
             self.tries = 0
             return 'tries'
-        if self.tries==1:
             #omni_base.tiny_move( velX=-1,std_time=3)
             voice.talk('Scanning the room for humans')
+        if self.tries == 1:
             voice.talk('I believe we are too close, please take a step back')
             #head.move_head(*[ 0.5, 0.0])# Looking ahead
         #if self.tries==2:head.move_head(*[ 0.5, 0.0])#looking left
         #if self.tries==3:head.move_head(*[-0.5, 0.0])#looking right        
         #rospy.sleep(1.0)
 
-        arm.set_named_target('face')
+        arm.set_named_target('carry_pointing')
         
         humanpose=detect_human_to_tf(dist = self.dist,remove_bkg=True)  #make sure service is running (pointing detector server now hosts this service)
+        print('human', humanpose)
         if humanpose== False:
             print ('no human ')
             return 'failed'
@@ -325,12 +326,9 @@ class Pre_pickup(smach.State):
         rospy.sleep(0.5)
         clear_octo_client()
         rospy.sleep(3.5)
-        res = omni_base.move_d_to(0.55,self.target)
-
-        #gripper.open()
-
         
-
+        res = omni_base.move_d_to(0.55,self.target)
+        #gripper.open()       
         if res:return 'succ'
         return 'failed'
         
@@ -360,7 +358,7 @@ class Pickup_two(smach.State):
         target_object=self.target
 
 
-        succ = False
+        """succ = False
                     
         while not succ:
             
@@ -392,7 +390,7 @@ class Pickup_two(smach.State):
 
             
             omni_base.tiny_move( velX=0.2*+eX,velY=0.3*eY, velT=-eT,std_time=0.2, MAX_VEL=0.3) 
-
+"""
         rospy.sleep(2.0)
         clear_octo_client()
         rospy.sleep(1.0)
@@ -444,7 +442,7 @@ class Give_to_me(smach.State):
         rospy.loginfo("State: Give to me")
         arm.set_named_target("pointing")
         voice.talk("Since I don't have a gripper yet, could you place the bag here?")
-        rospy.sleep(5.0)
+        rospy.sleep(1.0)
         
 
         
@@ -452,15 +450,15 @@ class Give_to_me(smach.State):
         userdata.floor_pose=floor_pose
         #brazo.set_named_target("neutral")
         #voice.talk(" please give the luggage to me")
-        gripper.open()
-        rospy.sleep(2.0)
-        voice.talk("In three...")
+        #gripper.open()
+        voice.talk("In three")
         rospy.sleep(0.4)
-        voice.talk("Two...")
+        voice.talk("Two")
         rospy.sleep(0.4)
-        voice.talk("One...")
+        voice.talk("One")
         rospy.sleep(0.4)
-        gripper.close(0.05)
+        #gripper.close(0.05)
+        arm.set_named_target('navigation')
         return 'succ'
         
 #########################################################################################################
@@ -504,9 +502,10 @@ class Deliver_Luggage(smach.State):
             #voice.talk("Please take the luggage")
             voice.talk("placing bag")
             #arm.set_joint_value_target(deliver_position)
-            arm.set_joint_value_target(userdata.floor_pose)
+            #arm.set_joint_value_target(userdata.floor_pose)
             print (f' pose floor {userdata.floor_pose}\n \n')
-            arm.go()
+            arm.set_named_target('pointing') 
+            #arm.go()
             rospy.sleep(3.0)
             # voice.talk("placing bag")
             # rospy.sleep(0.7)
@@ -514,11 +513,10 @@ class Deliver_Luggage(smach.State):
             # rospy.sleep(0.7)
             # voice.talk("One")
             # rospy.sleep(0.7)
-            gripper.open()
+            #gripper.open()
             #voice.talk('Push my hand when you have taken the bag')
             #brazo.set_named_target('go') 
-            arm.set_named_target('go') 
-            arm.go()
+            
             
             voice.talk("Task completed")
             return 'succ'
@@ -543,7 +541,7 @@ class Return_Living_Room(smach.State):
     def execute(self, userdata):
         self.tries += 1
         voice.talk("I will return to start location")
-        res = omni_base.move_base(known_location='start_location', time_out=200)
+        res = omni_base.move_base(known_location='start_location')
         print(res)
         if self.tries==3:
             self.tries=0

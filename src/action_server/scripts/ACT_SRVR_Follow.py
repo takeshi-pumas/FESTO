@@ -20,7 +20,7 @@ class Initial(smach.State):
         self.tries += 1
         #set_grammar(['yup','yes','jack','juice', 'ye','yeah', 'Jess'])
         #head.set_named_target('neutral')
-        brazo.set_joint_values(joint_values = [1.01, -0.31, 0.03, 0, -0.51])
+        #brazo.set_joint_values(joint_values = [1.01, -0.31, 0.03, 0, -0.51])
         #print('head listo')
         #brazo.set_named_target('go')
         #print('brazo listo')
@@ -170,7 +170,7 @@ class Follow_human(smach.State):
         self.last_pose= [0,0]
     def execute(self, userdata):
         if is_pushed():
-                    voice.talk ('arrival confirmed, exiting action')
+                    voice.talk ('arrival confirmed, leaving action')
                     msg_bool=Bool()
                     msg_bool.data= False
                     enable_legs.publish(msg_bool)
@@ -203,20 +203,20 @@ class Follow_human(smach.State):
                 # enable_legs.publish(msg_bool)
                 # enable_follow.publish(msg_bool)
                 print ('legs stopped... Did we arrive?')#,   np.var(self.last_legs,axis=0).mean()   )    
-                voice.talk ('Please, say yes if we have arrived, otherwise keep walking')#Push my hand to confirm ')
+                voice.talk ('Please, say finish if we have arrived, otherwise keep walking')#Push my hand to confirm ')
                 
                 # print ('are we there yet? Push my hand to confirm ') 
                 # rospy.sleep(3.5)  
                 speech = get_keywords_speech(7.0)
                 speech = speech.split(' ')
-                confirmation_list=['yup','yes','jack','juice', 'takeshi yes','yeah', 'Jess','Jeff' ]
+                confirmation_list=['finish','finished']
                 confirm = any(word in confirmation_list for word in speech)
                 # confirm_hand =wait_for_push_hand(2.0)
                 #print (speech,"################################################# \n \n",confirm, confirm_hand)      
 
                 if confirm:
                 # if is_pushed():
-                    voice.talk ('arrival confirmed, exiting action')
+                    voice.talk ('arrival confirmed')
                     msg_bool=Bool()
                     msg_bool.data= False
                     enable_legs.publish(msg_bool)
