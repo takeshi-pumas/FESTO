@@ -137,7 +137,7 @@ class Find_human(smach.State):
             self.tries = 0
             return 'tries'
             #omni_base.tiny_move( velX=-1,std_time=3)
-            voice.talk('Scanning the room for humans')
+        voice.talk('Scanning the room for humans')
         if self.tries == 1:
             voice.talk('I believe we are too close, please take a step back')
             #head.move_head(*[ 0.5, 0.0])# Looking ahead
@@ -320,6 +320,7 @@ class Pre_pickup(smach.State):
     def execute(self, userdata):
         rospy.loginfo(f'State : Pre PICKUP  {self.target} ')
         voice.talk(f'Picking up luggage, please stay where you are')
+        arm.set_named_target('navigation')
         rospy.sleep(0.7)
         global target_object, pca_angle
 
@@ -451,7 +452,7 @@ class Give_to_me(smach.State):
         #brazo.set_named_target("neutral")
         #voice.talk(" please give the luggage to me")
         #gripper.open()
-        voice.talk("In three")
+        voice.talk("Be careful, I gonna move in three")
         rospy.sleep(0.4)
         voice.talk("Two")
         rospy.sleep(0.4)
@@ -504,7 +505,8 @@ class Deliver_Luggage(smach.State):
             #arm.set_joint_value_target(deliver_position)
             #arm.set_joint_value_target(userdata.floor_pose)
             print (f' pose floor {userdata.floor_pose}\n \n')
-            arm.set_named_target('pointing') 
+            arm.set_named_target('pointing')
+            voice .talk("take the bag ,please")
             #arm.go()
             rospy.sleep(3.0)
             # voice.talk("placing bag")
@@ -516,7 +518,14 @@ class Deliver_Luggage(smach.State):
             #gripper.open()
             #voice.talk('Push my hand when you have taken the bag')
             #brazo.set_named_target('go') 
-            
+            voice.talk("Be careful, I gonna move in three")
+            rospy.sleep(0.4)
+            voice.talk("Two")
+            rospy.sleep(0.4)
+            voice.talk("One")
+            rospy.sleep(0.4)
+            #gripper.close(0.05)
+            arm.set_named_target('navigation')
             
             voice.talk("Task completed")
             return 'succ'

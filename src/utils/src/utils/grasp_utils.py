@@ -72,7 +72,7 @@ class ARM:
             'table': [1.01, -0.65, -0.64, 0.0, 0.1],
             'head': [1.01, -0.965, -0.489, 0.0, -0.131],
             'neutral': [0.0, 0.0, 0.0, -1.6, -1.6,],
-            'carry_pointing':[1.01, -0.31, 0.0, 1.76, 0.0]
+            'carry_pointing':[1.01, -0.03, -2.98, 0, 1.69]
         }
         joint_values = poses.get(pose, poses['neutral'])
         self.set_joint_values(joint_values, duration=duration)
