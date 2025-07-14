@@ -30,7 +30,7 @@
          command="$(find xacro)/xacro '$(find robotino_description)/urdf/robotino_armless.urdf.xacro'" />
 
   <!-- Load xArm controllers -->
-  <rosparam file="$(find xarm_controller)/config/xarm6/xarm6_controllers.yaml" command="load"/>
+  <rosparam file="$(find xarm_controller)/config/xarm5/xarm5_controllers.yaml" command="load"/>
 
   <!-- Joint State Publisher -->
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
@@ -44,5 +44,9 @@
   <node name="spawn_festino" pkg="gazebo_ros" type="spawn_model"
         args="-param robot_description -urdf -model festino -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg yaw)"
         output="screen" />
+<!-- Fake controller like in TABLE -->
+<include file="$(find xarm_controller)/launch/xarm5_traj_controller.launch">
+  <arg name="use_fake_hardware" value="true"/>
+</include>
 
 </launch>

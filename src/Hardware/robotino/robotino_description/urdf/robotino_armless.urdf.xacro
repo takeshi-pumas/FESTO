@@ -16,7 +16,6 @@
   <xacro:property name="body_mesh" value="package://robotino_description/model/Robotino3_SplitMain_NoCamera.dae"/>
   <xacro:property name="tower_mesh" value="package://robotino_description/model/Robotino3_Platform-xarm.dae"/>
   <xacro:property name="hokuyo_mesh" value="package://robotino_description/meshes/sensors/hokuyo.dae"/>
-  <xacro:property name="kinect_mesh" value="package://robotino_description/meshes/sensors/kinect.dae"/>
 
   <!-- ==================== Macros ==================== -->
   <xacro:macro name="wheel_link" params="index xyz rpy">
@@ -51,7 +50,7 @@
   <link name="base_link">
     <inertial>
       <origin xyz="0 0 0.03" rpy="0 0 0"/>
-      <mass value="35.0"/>
+      <mass value="55.0"/>
       <inertia ixx="1.0" iyy="1.0" izz="1.0" ixy="0.0" ixz="0.0" iyz="0.0"/>
     </inertial>
 
@@ -126,27 +125,6 @@
     <origin xyz="0.07 0.0 0.28" rpy="0 0 0"/>
   </joint>
 
-  <!-- ==================== Kinect Sensor ==================== -->
-  <link name="camera_link">
-    <visual>
-      <origin xyz="0.15 0 0" rpy="0 0 1.57"/>
-      <geometry>
-        <mesh filename="${kinect_mesh}" scale="1 1 1"/>
-      </geometry>
-    </visual>
-    <collision>
-      <origin xyz="0.15 0 0" rpy="0 0 1.57"/>
-      <geometry>
-        <mesh filename="${kinect_mesh}" scale="1 1 1"/>
-      </geometry>
-    </collision>
-  </link>
-
-  <joint name="platform_to_camera" type="fixed">
-    <parent link="base_link"/>
-    <child link="camera_link"/>
-    <origin xyz="0.15 0.0 0.3" rpy="0 0 0"/>
-  </joint>
 
   <!-- ==================== Gazebo Plugins ==================== -->
   <gazebo>
@@ -193,31 +171,12 @@
     </sensor>
   </gazebo>
 
-  <gazebo reference="camera_link">
-    <sensor type="depth" name="kinect_sensor">
-      <always_on>true</always_on>
-      <update_rate>30</update_rate>
-      <visualize>true</visualize>
-      
-      <camera>
-        <horizontal_fov>1.0472</horizontal_fov>  <!-- 60° FOV -->
-        <image>
-          <width>640</width>
-          <height>480</height>
-          <format>R8G8B8</format>
-        </image>
-        <depth_near>0.1</depth_near>
-        <depth_far>10.0</depth_far>
-      </camera>
+ 
 
-      <plugin name="kinect_controller" filename="libgazebo_ros_openni_kinect.so">
-        <topicName>/kinect/depth</topicName>
-        <frameName>camera_link</frameName>
-        <baseline>0.1</baseline>
-        <alwaysOn>true</alwaysOn>
-        <updateRate>30</updateRate>
-      </plugin>
-    </sensor>
-  </gazebo>
+
+<gazebo>
+  <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+    <robotNamespace>/xarm</robotNamespace>  </plugin>
+</gazebo>
 
 </robot>
