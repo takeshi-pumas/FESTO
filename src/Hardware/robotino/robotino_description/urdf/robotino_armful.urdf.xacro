@@ -55,6 +55,24 @@
 
 <!-- Kinect link body -->
 <link name="camera_link">
+  <!-- ✅ Standard ROS optical frame -->
+  
+  <link name="camera_depth_optical_frame">
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.01 0.01 0.01"/>
+    </geometry>
+    <material name="Grey"/>
+  </visual>
+</link>
+
+<joint name="camera_depth_optical_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="camera_depth_optical_frame"/>
+    <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708"/>
+  </joint>
+
   <visual>
   <origin xyz="0.08 0.0 -0.04" rpy="-1.57 0 -1.57"/>
     <geometry>
